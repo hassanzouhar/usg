@@ -328,7 +328,7 @@ async function initGame() {
     game.enemies = [];
     lastEnemySpawnTime = Date.now();
 
-    // Store event listener references
+    // Setup event listeners
     game.keydownListener = (e) => {
         if (!game.isGameActive) return;
         game.keys[e.code] = true;
@@ -348,18 +348,28 @@ async function initGame() {
     document.addEventListener('keydown', game.keydownListener);
     document.addEventListener('keyup', game.keyupListener);
 
-    startButton.addEventListener('click', () => {
-        game.playerName = playerNameInput.value || 'Player';
-        startGame();
-    });
+    // Simplified start button logic
+    startButton.addEventListener('click', startGame);
     playAgainButton.addEventListener('click', restartGame);
 }
 
 function startGame() {
     startScreen.style.display = 'none';
     game.isGameActive = true;
-    document.getElementById('high-scores').classList.remove('hidden');
-    fetchScores(); // Fetch initial scores
+    game.score = INITIAL_SCORE;
+    game.lives = INITIAL_LIVES;
+    game.level = INITIAL_LEVEL;
+    
+    // Reset UI
+    scoreValue.textContent = game.score;
+    livesValue.textContent = game.lives;
+    levelValue.textContent = game.level;
+    
+    // Clear existing enemies and bullets
+    game.enemies = [];
+    game.bullets = [];
+    
+    // Start game loop
     game.gameLoop = requestAnimationFrame(update);
 }
 
