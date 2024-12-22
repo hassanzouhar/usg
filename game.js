@@ -17,6 +17,7 @@ const INITIAL_LEVEL = 1;
 const DIFFICULTY_INCREASE_INTERVAL = 30000;
 const MAX_ENEMIES = 10;
 const ENEMY_SPEED_INCREASE = 0.2;
+const SOUND_POOL_SIZE = 5;
 
 // Global variables
 let lastDifficultyIncrease = 0;
@@ -60,12 +61,55 @@ const game = {
 
 // Asset loading and game initialization will be handled by loadGame() function
 
-const sounds = {
-    shoot: new Audio('sounds/shoot.wav'),
-    explosion: new Audio('sounds/explosion.wav'),
-    powerUp: new Audio('sounds/powerup.wav'),
-    gameOver: new Audio('sounds/gameover.wav')
-};
+// Create SoundPool class
+class SoundPool {
+    constructor(soundSrc, poolSize) {
+        this.pool = [];
+        this.currentSound = 0;
+        
+        for (let i = 0; i < poolSize; i++) {
+            const sound = new Audio(soundSrc);
+            sound.volume = 0.5; // Adjust volume as needed
+            this.pool.push(sound);
+        }
+    }
+
+    play() {
+        // Reset if sound is still playing
+        if (this.pool[this.currentSound].currentTime > 0) {
+            this.pool[this.currentSound].currentTime = 0;
+        }
+        
+        this.pool[this.currentSound].play();
+        this.currentSound = (this.currentSound + 1) % this.pool.length;
+    }
+}
+
+// Replace sounds object with SoundManager
+class SoundManager {
+    constructor() {
+        this.sounds = {
+            shoot: new SoundPool('sounds/shoot.wav', SOUND_POOL_SIZE),
+            explosion: new SoundPool('sounds/explosion.wav', SOUND_POOL_SIZE),
+            powerUp: new SoundPool('sounds/powerup.wav', SOUND_POOL_SIZE),
+            gameOver: new Audio('sounds/gameover.wav') // Single instance for game over
+        };
+        
+        this.muted = false;
+    }
+
+    play(soundName) {
+        if (this.muted) return;
+        this.sounds[soundName].play();
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+    }
+}
+
+// Replace sounds constant with SoundManager instance
+const soundManager = new SoundManager();
 
 // DOM elements
 const startScreen = document.getElementById('start-screen');
@@ -292,8 +336,7 @@ async function initGame() {
         if (e.code === 'Space' && now - game.lastShotTime > SHOOTING_COOLDOWN) {
             game.bullets.push(new Bullet(game.player.x + game.player.width / 2 - BULLET_WIDTH / 2, game.player.y));
             game.lastShotTime = now;
-            sounds.shoot.currentTime = 0;
-            sounds.shoot.play();
+            soundManager.play('shoot');
         }
     };
     
@@ -331,8 +374,7 @@ function updateGameLogic() {
                 updateScore(100); // Increment score when an enemy is destroyed
                 game.bullets.splice(index, 1);
                 explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2)); // Add explosion
-                sounds.explosion.currentTime = 0;
-                sounds.explosion.play();
+                soundManager.play('explosion');
             }
         });
     });
@@ -403,35 +445,57 @@ async function checkHighScore(score) {
     return scores.length < 10 || score > scores[scores.length - 1].score;
 }
 
+// Add new function to check if score is lower than lowest
+async function isLowScore(score) {
+    try {
+        const scores = await getHighScores(10);
+        if (scores.length < 10) return false; // Not full yet, all scores accepted
+        return score < scores[scores.length - 1].score;
+    } catch (error) {
+        console.error('Error checking low score:', error);
+        return false; // Default to false on error
+    }
+}
+
+// Update gameOver function
 async function gameOver() {
     game.isGameActive = false;
     cancelAnimationFrame(game.gameLoop);
+    soundManager.play('gameOver');
     
     gameOverScreen.style.display = 'flex';
     finalScoreValue.textContent = game.score;
     
-    const isHighScore = await checkHighScore(game.score);
     const highScoreInput = document.getElementById('high-score-input');
     const highScores = document.getElementById('high-scores');
     const playerNameInput = document.getElementById('player-name');
     
-    if (isHighScore) {
-        highScoreInput.classList.remove('hidden');
-        playerNameInput.focus();
-        playerNameInput.value = '';
-        
-        // Remove any existing listeners first
-        const saveScore = async (e) => {
-            if (e.key === 'Enter' && playerNameInput.value.trim()) {
-                await saveHighScore(playerNameInput.value.trim(), game.score);
-                await fetchScores();
-                highScoreInput.classList.add('hidden');
-                // Remove the listener after saving
-                playerNameInput.removeEventListener('keypress', saveScore);
-            }
-        };
-        
-        playerNameInput.addEventListener('keypress', saveScore);
+    // Check if score is too low
+    if (await isLowScore(game.score)) {
+        highScoreInput.classList.add('hidden');
+        const lowScoreMessage = document.createElement('p');
+        lowScoreMessage.textContent = "Keep trying! Your score wasn't high enough for the leaderboard.";
+        lowScoreMessage.style.color = '#FF4136';
+        gameOverScreen.insertBefore(lowScoreMessage, highScores);
+    } else {
+        // Existing high score logic
+        const isHighScore = await checkHighScore(game.score);
+        if (isHighScore) {
+            highScoreInput.classList.remove('hidden');
+            playerNameInput.focus();
+            playerNameInput.value = '';
+            
+            const saveScore = async (e) => {
+                if (e.key === 'Enter' && playerNameInput.value.trim()) {
+                    await saveHighScore(playerNameInput.value.trim(), game.score);
+                    await fetchScores();
+                    highScoreInput.classList.add('hidden');
+                    playerNameInput.removeEventListener('keypress', saveScore);
+                }
+            };
+            
+            playerNameInput.addEventListener('keypress', saveScore);
+        }
     }
     
     highScores.classList.remove('hidden');
