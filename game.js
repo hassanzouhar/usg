@@ -1,4 +1,4 @@
-// game.js - Fixed Game Logic for Ultimate Galactic Space Fighter
+// game.js - Updated with Shooting Mechanism
 
 let canvas, ctx;
 let backgroundImage, playerImage, enemyImage;
@@ -6,8 +6,10 @@ let score = 0;
 let lives = 3;
 let level = 1;
 let gameLoop;
-let player, enemies;
+let player, enemies, bullets = [];
 let keys = {};
+let lastShotTime = 0;
+const shootingCooldown = 300; // Cooldown for shooting
 
 // DOM elements
 const startScreen = document.getElementById('start-screen');
@@ -29,7 +31,9 @@ class GameObject {
     }
 
     draw() {
-        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+        if (this.image) {
+            ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+        }
     }
 }
 
@@ -63,6 +67,17 @@ class Enemy extends GameObject {
     }
 }
 
+class Bullet extends GameObject {
+    constructor(x, y) {
+        super(x, y, 5, 10, null);
+        this.speed = 7;
+    }
+
+    move() {
+        this.y -= this.speed;
+    }
+}
+
 function loadImages() {
     return new Promise((resolve) => {
         backgroundImage = new Image();
@@ -83,13 +98,11 @@ function loadImages() {
         playerImage.onload = onImageLoad;
         enemyImage.onload = onImageLoad;
 
-        // Updated image paths
         backgroundImage.src = 'img/space-background.png';
         playerImage.src = 'img/player-ship.png';
         enemyImage.src = 'img/enemy-ship.png';
     });
 }
-
 
 async function initGame() {
     canvas = document.getElementById('gameCanvas');
@@ -101,34 +114,26 @@ async function initGame() {
 
     player = new Player(canvas.width / 2 - 25, canvas.height - 70);
     enemies = [];
-
     for (let i = 0; i < 5; i++) {
         enemies.push(new Enemy(Math.random() * (canvas.width - 50), Math.random() * -300));
     }
 
-    document.addEventListener('keydown', (e) => keys[e.code] = true);
+    document.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        const now = Date.now();
+        if (e.code === 'Space' && now - lastShotTime > shootingCooldown) {
+            bullets.push(new Bullet(player.x + player.width / 2 - 2.5, player.y));
+            lastShotTime = now;
+        }
+    });
     document.addEventListener('keyup', (e) => keys[e.code] = false);
-    
-    // Ensure startButton is correctly selected and add event listener
-    if (startButton) {
-        startButton.addEventListener('click', startGame);
-    } else {
-        console.error('Start button not found');
-    }
-    
-    if (playAgainButton) {
-        playAgainButton.addEventListener('click', restartGame);
-    } else {
-        console.error('Play Again button not found');
-    }
+
+    startButton.addEventListener('click', startGame);
+    playAgainButton.addEventListener('click', restartGame);
 }
 
 function startGame() {
-    if (startScreen) {
-        startScreen.style.display = 'none';
-    } else {
-        console.error('Start screen not found');
-    }
+    startScreen.style.display = 'none';
     gameLoop = requestAnimationFrame(update);
 }
 
@@ -138,7 +143,23 @@ function update() {
     player.move();
     player.draw();
 
-    enemies.forEach((enemy, index) => {
+    bullets = bullets.filter(bullet => bullet.y > 0); // Remove bullets out of bounds
+    bullets.forEach((bullet, index) => {
+        bullet.move();
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+
+        enemies.forEach((enemy, enemyIndex) => {
+            if (checkCollision(bullet, enemy)) {
+                resetEnemyPosition(enemy);
+                score += 100;
+                scoreValue.textContent = score;
+                bullets.splice(index, 1);
+            }
+        });
+    });
+
+    enemies.forEach((enemy) => {
         enemy.move();
         enemy.draw();
 
@@ -179,11 +200,7 @@ function resetEnemyPosition(enemy) {
 
 function gameOver() {
     cancelAnimationFrame(gameLoop);
-    if (gameOverScreen) {
-        gameOverScreen.style.display = 'flex';
-    } else {
-        console.error('Game Over screen not found');
-    }
+    gameOverScreen.style.display = 'flex';
     finalScoreValue.textContent = score;
 }
 
@@ -194,11 +211,7 @@ function restartGame() {
     scoreValue.textContent = score;
     livesValue.textContent = lives;
     levelValue.textContent = level;
-    if (gameOverScreen) {
-        gameOverScreen.style.display = 'none';
-    } else {
-        console.error('Game Over screen not found');
-    }
+    gameOverScreen.style.display = 'none';
     initGame();
     startGame();
 }
