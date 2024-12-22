@@ -32,17 +32,39 @@
             display: none;
         }
         
-        #scoreboard {
-            margin-top: 20px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 5px;
+        #high-scores {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 8px;
+            min-width: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
         }
-        
+
+        #high-scores h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.25em;
+            color: #ffeb3b;
+        }
+
         #high-scores-list {
             list-style: none;
             padding: 0;
             margin: 0;
+        }
+
+        #high-scores-list li {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #high-scores-list li:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
         }
         
         /* Add other necessary styles for positioning and displaying elements */
@@ -55,8 +77,8 @@
             <div id="score">Score: <span id="scoreValue">0</span></div>
             <div id="lives">Lives: <span id="livesValue">3</span></div>
             <div id="level">Level: <span id="levelValue">1</span></div>
-            <div id="scoreboard" class="hidden" role="region" aria-label="High Scores">
-                <h3>High Scores</h3>
+            <div id="high-scores" class="hidden" role="region" aria-label="High Scores">
+                <h2>High Scores</h2>
                 <div id="scores-loader" class="loader hidden"></div>
                 <ul id="high-scores-list" aria-live="polite"></ul>
             </div>

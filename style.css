@@ -6,6 +6,7 @@ html, body {
     overflow: hidden;
     font-family: 'Arial', sans-serif;
     background-color: #000;
+    color: #fff;
 }
 
 #game-container {
@@ -33,6 +34,9 @@ html, body {
     color: #fff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 #ui div {
@@ -98,4 +102,109 @@ button:hover {
     font-size: 24px;
     color: #FFFFFF;
     margin-bottom: 20px;
+}
+
+/* Scoreboard Styles */
+#high-scores {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #2ECC40;
+    max-width: 300px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+#high-scores h3 {
+    color: #FFFC00;
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-size: 24px;
+}
+
+.high-scores-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.high-scores-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 16px;
+}
+
+.high-scores-list li:last-child {
+    border-bottom: none;
+}
+
+.high-scores-list .score {
+    color: #2ECC40;
+    font-weight: bold;
+}
+
+/* Loader Styles */
+.loader {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #ui {
+        font-size: 16px;
+    }
+
+    #high-scores {
+        top: auto;
+        bottom: 20px;
+        right: 50%;
+        transform: translateX(50%);
+        max-width: 90%;
+        max-height: 30vh;
+    }
+
+    h1, h2 {
+        font-size: 36px;
+    }
+
+    input, button {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    #ui {
+        font-size: 14px;
+    }
+
+    h1, h2 {
+        font-size: 28px;
+    }
+
+    #high-scores h3 {
+        font-size: 20px;
+    }
+
+    .high-scores-list li {
+        font-size: 14px;
+    }
 }

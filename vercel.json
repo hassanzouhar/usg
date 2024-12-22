@@ -1,15 +1,5 @@
 {
 "version": 2,
-"buildCommand": "npm run build",
-"outputDirectory": "dist",
-"public": true,
-"github": {
-    "silent": true
-},
-"env": {
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_KEY": "@supabase_key"
-},
 "headers": [
     {
     "source": "/(.*)",
@@ -19,7 +9,7 @@
         "value": "nosniff"
         },
         {
-        "key": "X-Frame-Options",
+        "key": "X-Frame-Options", 
         "value": "DENY"
         },
         {
@@ -29,9 +19,10 @@
     ]
     }
 ],
-"routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+"rewrites": [
+    {
+    "source": "/(.*)",
+    "destination": "/index.html"
+    }
 ]
 }
-

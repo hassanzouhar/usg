@@ -1,7 +1,6 @@
-import { supabase } from './supabase.js';
+import { supabase, saveHighScore, getHighScores } from './supabase.js';
 
-// game.js - Updated with Shooting Mechanism and Scoreboard Features
-
+// Game Constants
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
 const ENEMY_WIDTH = 50;
@@ -9,16 +8,20 @@ const ENEMY_HEIGHT = 50;
 const BULLET_WIDTH = 5;
 const BULLET_HEIGHT = 10;
 const BULLET_SPEED = 7;
-const SHOOTING_COOLDOWN = 100;
+const SHOOTING_COOLDOWN = 150;
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const INITIAL_LIVES = 3;
 const INITIAL_SCORE = 0;
 const INITIAL_LEVEL = 1;
-const DIFFICULTY_INCREASE_INTERVAL = 30000; // 30 seconds
+const DIFFICULTY_INCREASE_INTERVAL = 30000;
 const MAX_ENEMIES = 10;
 const ENEMY_SPEED_INCREASE = 0.2;
+
+// Global variables
 let lastDifficultyIncrease = 0;
+let lastEnemySpawnTime = 0;
+const explosions = [];
 
 const game = {
     canvas: null,
@@ -45,12 +48,14 @@ const game = {
     enemySpawnInterval: 2000,
     enemySpeedMin: 1,
     enemySpeedMax: 2,
+    assets: {
+        backgroundImage: null,
+        playerImage: null,
+        enemyImage: null
+    }
 };
 
-let backgroundImage, playerImage, enemyImage;
-const shootingCooldown = 150; // Cooldown for shooting
-let lastEnemySpawnTime = 0;
-const explosions = [];
+// Asset loading and game initialization will be handled by loadGame() function
 
 const sounds = {
     shoot: new Audio('sounds/shoot.wav'),
@@ -88,7 +93,7 @@ class GameObject {
 
 class Player extends GameObject {
     constructor(x, y) {
-        super(x, y, 50, 50, playerImage);
+        super(x, y, PLAYER_WIDTH, PLAYER_HEIGHT, game.assets.playerImage);
         this.speed = 5;
     }
 
@@ -118,7 +123,7 @@ class Player extends GameObject {
 
 class Enemy extends GameObject {
     constructor(x, y) {
-        super(x, y, ENEMY_WIDTH, ENEMY_HEIGHT, enemyImage);
+        super(x, y, ENEMY_WIDTH, ENEMY_HEIGHT, game.assets.enemyImage);
         this.resetPosition();
     }
 
@@ -209,9 +214,9 @@ class PowerUp extends GameObject {
 
 function loadImages() {
     return new Promise((resolve) => {
-        backgroundImage = new Image();
-        playerImage = new Image();
-        enemyImage = new Image();
+        game.assets.backgroundImage = new Image();
+        game.assets.playerImage = new Image();
+        game.assets.enemyImage = new Image();
 
         let loadedImages = 0;
         const totalImages = 3;
@@ -223,46 +228,53 @@ function loadImages() {
             }
         }
 
-        backgroundImage.onload = onImageLoad;
-        playerImage.onload = onImageLoad;
-        enemyImage.onload = onImageLoad;
+        game.assets.backgroundImage.onload = onImageLoad;
+        game.assets.playerImage.onload = onImageLoad;
+        game.assets.enemyImage.onload = onImageLoad;
 
-        backgroundImage.src = 'img/space-background.png';
-        playerImage.src = 'img/player-ship.png';
-        enemyImage.src = 'img/enemy-ship.png';
+        game.assets.backgroundImage.src = 'img/space-background.png';
+        game.assets.playerImage.src = 'img/player-ship.png';
+        game.assets.enemyImage.src = 'img/enemy-ship.png';
     });
 }
 
 async function fetchScores() {
     game.isLoadingScores = true;
+    const loader = document.getElementById('scores-loader');
+    if (loader) loader.classList.remove('hidden');
+    
     try {
-        const { data, error } = await supabase
-            .from('highscores')
-            .select('*')
-            .order('score', { ascending: false })
-            .limit(10);
-
-        if (error) throw error;
-        game.highScores = data;
+        const scores = await getHighScores();
+        game.highScores = scores;
         updateScoreboardDisplay();
     } catch (error) {
         console.error('Error fetching scores:', error);
     } finally {
         game.isLoadingScores = false;
+        if (loader) loader.classList.add('hidden');
     }
 }
 
-function updateScoreboardDisplay() {
-    const scoreboardList = document.getElementById('scoreboard-list');
-    if (!scoreboardList) return;
 
+function updateScoreboardDisplay() {
+    const scoreboardList = document.getElementById('high-scores-list');
+    if (!scoreboardList) return;
+    
     scoreboardList.innerHTML = '';
     game.highScores.forEach((score, index) => {
         const li = document.createElement('li');
         li.textContent = `${index + 1}. ${score.name}: ${score.score}`;
         scoreboardList.appendChild(li);
     });
+    }
+
+    async function initGame() {
+async function initGame() {
+
+async function initGame() {
 }
+}
+
 
 async function initGame() {
     game.canvas = document.getElementById('gameCanvas');
@@ -297,6 +309,7 @@ async function initGame() {
 
 function startGame() {
     startScreen.style.display = 'none';
+    document.getElementById('high-scores').classList.remove('hidden');
     fetchScores(); // Fetch initial scores
     game.gameLoop = requestAnimationFrame(update);
 }
@@ -350,7 +363,7 @@ function updateGameLogic() {
 }
 
 function renderGame() {
-    game.ctx.drawImage(backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
+    game.ctx.drawImage(game.assets.backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
     game.player.draw();
     game.bullets.forEach(bullet => {
         game.ctx.fillStyle = 'yellow';
@@ -380,6 +393,7 @@ function resetEnemyPosition(enemy) {
 function gameOver() {
     cancelAnimationFrame(game.gameLoop);
     gameOverScreen.style.display = 'flex';
+    document.getElementById('high-scores').classList.remove('hidden');
     finalScoreValue.textContent = game.score;
     updateHighScores();
 }
@@ -432,23 +446,18 @@ function updateScore(points) {
 }
 
 async function updateHighScores() {
-    const scoreData = {
-        name: game.playerName,
-        score: game.score,
-        created_at: new Date().toISOString()
-    };
-    
     try {
-        const { error } = await supabase
-            .from('highscores')
-            .insert(scoreData);
-
-        if (error) throw error;
-        
+        await saveHighScore(game.playerName, game.score);
         // Refresh the scoreboard
         await fetchScores();
     } catch (error) {
         console.error('Error updating high scores:', error);
+    }
+}
+
+
+window.addEventListener('load', initGame);
+window.addEventListener('load', initGame);
     }
 }
 
