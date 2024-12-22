@@ -65,6 +65,15 @@ h1, h2 {
     text-align: center;
 }
 
+input {
+    font-size: 24px;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #2ECC40;
+    border-radius: 5px;
+    text-align: center;
+}
+
 button {
     font-size: 24px;
     padding: 12px 24px;
