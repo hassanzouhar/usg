@@ -317,76 +317,84 @@ function updateScoreboardDisplay() {
 }
 
 async function initGame() {
+    // Initialize canvas
     game.canvas = document.getElementById('gameCanvas');
     game.ctx = game.canvas.getContext('2d');
     game.canvas.width = CANVAS_WIDTH;
     game.canvas.height = CANVAS_HEIGHT;
-
-    await loadImages();
-
-    game.player = new Player(game.canvas.width / 2 - PLAYER_WIDTH / 2, game.canvas.height - PLAYER_HEIGHT - 20);
+    
+    // Initialize game state
+    game.isGameActive = false;
+    game.score = INITIAL_SCORE;
+    game.lives = INITIAL_LIVES;
+    game.level = INITIAL_LEVEL;
     game.enemies = [];
-    lastEnemySpawnTime = Date.now();
-
-    // Setup event listeners
+    game.bullets = [];
+    game.keys = {};
+    game.lastShotTime = 0;
+    
+    // Load assets
+    await loadImages();
+    
+    // Create player
+    game.player = new Player(
+        game.canvas.width / 2 - PLAYER_WIDTH / 2,
+        game.canvas.height - PLAYER_HEIGHT - 20
+    );
+    
+    // Set up event listeners
+    if (game.keydownListener) {
+        document.removeEventListener('keydown', game.keydownListener);
+    }
+    if (game.keyupListener) {
+        document.removeEventListener('keyup', game.keyupListener);
+    }
+    
     game.keydownListener = (e) => {
-        if (!game.isGameActive) return;
         game.keys[e.code] = true;
-        const now = Date.now();
-        if (e.code === 'Space' && now - game.lastShotTime > SHOOTING_COOLDOWN) {
-            game.bullets.push(new Bullet(game.player.x + game.player.width / 2 - BULLET_WIDTH / 2, game.player.y));
-            game.lastShotTime = now;
+        if (e.code === 'Space' && game.isGameActive && 
+            Date.now() - game.lastShotTime > SHOOTING_COOLDOWN) {
+            game.bullets.push(new Bullet(
+                game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
+                game.player.y
+            ));
+            game.lastShotTime = Date.now();
             soundManager.play('shoot');
         }
     };
     
     game.keyupListener = (e) => {
-        if (!game.isGameActive) return;
         game.keys[e.code] = false;
     };
-
+    
     document.addEventListener('keydown', game.keydownListener);
     document.addEventListener('keyup', game.keyupListener);
-
-    // Simplified start button logic
-    startButton.addEventListener('click', startGame);
-    playAgainButton.addEventListener('click', restartGame);
 }
 
 function startGame() {
-    // Make sure canvas and context exist
     if (!game.canvas || !game.ctx) {
         console.error('Canvas not initialized');
         return;
     }
     
-    // Reset game state
     game.isGameActive = true;
+    startScreen.style.display = 'none';
+    gameOverScreen.style.display = 'none';
+    
+    // Reset game state
     game.score = INITIAL_SCORE;
     game.lives = INITIAL_LIVES;
     game.level = INITIAL_LEVEL;
     game.enemies = [];
     game.bullets = [];
     
-    // Reset UI elements
-    const startScreen = document.getElementById('start-screen');
-    const scoreValue = document.getElementById('scoreValue');
-    const livesValue = document.getElementById('livesValue');
-    const levelValue = document.getElementById('levelValue');
-    
-    startScreen.style.display = 'none';
+    // Update UI
     scoreValue.textContent = game.score;
     livesValue.textContent = game.lives;
     levelValue.textContent = game.level;
     
-    // Ensure player is initialized
-    if (!game.player) {
-        game.player = new Player(game.canvas.width / 2 - PLAYER_WIDTH / 2, 
-                               game.canvas.height - PLAYER_HEIGHT - 20);
-    }
-    
     // Start game loop
-    game.gameLoop = requestAnimationFrame(update);
+    update();
 }
 
 function updateGameLogic() {
