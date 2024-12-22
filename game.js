@@ -354,20 +354,36 @@ async function initGame() {
 }
 
 function startGame() {
-    startScreen.style.display = 'none';
+    // Make sure canvas and context exist
+    if (!game.canvas || !game.ctx) {
+        console.error('Canvas not initialized');
+        return;
+    }
+    
+    // Reset game state
     game.isGameActive = true;
     game.score = INITIAL_SCORE;
     game.lives = INITIAL_LIVES;
     game.level = INITIAL_LEVEL;
+    game.enemies = [];
+    game.bullets = [];
     
-    // Reset UI
+    // Reset UI elements
+    const startScreen = document.getElementById('start-screen');
+    const scoreValue = document.getElementById('scoreValue');
+    const livesValue = document.getElementById('livesValue');
+    const levelValue = document.getElementById('levelValue');
+    
+    startScreen.style.display = 'none';
     scoreValue.textContent = game.score;
     livesValue.textContent = game.lives;
     levelValue.textContent = game.level;
     
-    // Clear existing enemies and bullets
-    game.enemies = [];
-    game.bullets = [];
+    // Ensure player is initialized
+    if (!game.player) {
+        game.player = new Player(game.canvas.width / 2 - PLAYER_WIDTH / 2, 
+                               game.canvas.height - PLAYER_HEIGHT - 20);
+    }
     
     // Start game loop
     game.gameLoop = requestAnimationFrame(update);
@@ -569,4 +585,18 @@ async function updateHighScores() {
     }
 }
 
-window.addEventListener('load', initGame);
+window.addEventListener('load', async () => {
+    await initGame();
+    
+    // Move these event listeners here to ensure elements exist
+    const startButton = document.getElementById('start-button');
+    const playAgainButton = document.getElementById('play-again-button');
+    
+    startButton.addEventListener('click', () => {
+        startGame();
+    });
+    
+    playAgainButton.addEventListener('click', () => {
+        restartGame();
+    });
+});
