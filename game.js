@@ -436,14 +436,23 @@ function updateGameLogic() {
 }
 
 function renderGame() {
+    // Draw the background first
     game.ctx.drawImage(game.assets.backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
+    
+    // Draw the player
     game.player.draw();
+    
+    // Draw the bullets
     game.bullets.forEach(bullet => {
         game.ctx.fillStyle = 'yellow';
         game.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     });
+    
+    // Draw the enemies
     game.enemies.forEach(enemy => enemy.draw());
-    explosions.forEach(explosion => explosion.draw(game.ctx)); // Draw explosions
+    
+    // Draw the explosions last to ensure they are on top
+    explosions.forEach(explosion => explosion.draw(game.ctx));
 }
 
 function update() {
