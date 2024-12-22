@@ -13,10 +13,6 @@ const CANVAS_HEIGHT = 600;
 const INITIAL_LIVES = 3;
 const INITIAL_SCORE = 0;
 const INITIAL_LEVEL = 1;
-const ENEMY_SPEED_MIN = 1;
-const ENEMY_SPEED_MAX = 2;
-const ENEMY_SPAWN_INTERVAL = 2000; // Spawn enemies every 2 seconds
-
 const DIFFICULTY_INCREASE_INTERVAL = 30000; // 30 seconds
 const MAX_ENEMIES = 10;
 const ENEMY_SPEED_INCREASE = 0.2;
@@ -42,7 +38,10 @@ const game = {
     scoreMultiplier: 1,
     combo: 0,
     comboTimer: null,
-    highScores: JSON.parse(localStorage.getItem('highScores')) || []
+    highScores: JSON.parse(localStorage.getItem('highScores')) || [],
+    enemySpawnInterval: 2000,
+    enemySpeedMin: 1,
+    enemySpeedMax: 2,
 };
 
 let backgroundImage, playerImage, enemyImage;
@@ -123,7 +122,7 @@ class Enemy extends GameObject {
     resetPosition() {
         this.y = -this.height;
         this.x = Math.random() * (game.canvas.width - this.width);
-        this.speed = ENEMY_SPEED_MIN + Math.random() * (ENEMY_SPEED_MAX - ENEMY_SPEED_MIN);
+        this.speed = game.enemySpeedMin + Math.random() * (game.enemySpeedMax - game.enemySpeedMin);
     }
 
     move() {
@@ -369,7 +368,7 @@ function spawnEnemy() {
 
 function updateEnemySpawning() {
     const now = Date.now();
-    if (now - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
+    if (now - lastEnemySpawnTime > game.enemySpawnInterval) {
         spawnEnemy();
         lastEnemySpawnTime = now;
     }
@@ -378,10 +377,10 @@ function updateEnemySpawning() {
 function updateDifficulty() {
     const now = Date.now();
     if (now - lastDifficultyIncrease > DIFFICULTY_INCREASE_INTERVAL) {
-        ENEMY_SPEED_MIN += ENEMY_SPEED_INCREASE;
-        ENEMY_SPEED_MAX += ENEMY_SPEED_INCREASE;
-        if (ENEMY_SPAWN_INTERVAL > 1000) {
-            ENEMY_SPAWN_INTERVAL -= 100;
+        game.enemySpeedMin += ENEMY_SPEED_INCREASE;
+        game.enemySpeedMax += ENEMY_SPEED_INCREASE;
+        if (game.enemySpawnInterval > 1000) {
+            game.enemySpawnInterval -= 100;
         }
         lastDifficultyIncrease = now;
     }
