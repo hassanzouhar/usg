@@ -52,7 +52,10 @@ const game = {
         backgroundImage: null,
         playerImage: null,
         enemyImage: null
-    }
+    },
+    isGameActive: false,
+    keydownListener: null,
+    keyupListener: null
 };
 
 // Asset loading and game initialization will be handled by loadGame() function
@@ -280,7 +283,9 @@ async function initGame() {
     game.enemies = [];
     lastEnemySpawnTime = Date.now();
 
-    document.addEventListener('keydown', (e) => {
+    // Store event listener references
+    game.keydownListener = (e) => {
+        if (!game.isGameActive) return;
         game.keys[e.code] = true;
         const now = Date.now();
         if (e.code === 'Space' && now - game.lastShotTime > shootingCooldown) {
@@ -289,8 +294,15 @@ async function initGame() {
             sounds.shoot.currentTime = 0;
             sounds.shoot.play();
         }
-    });
-    document.addEventListener('keyup', (e) => game.keys[e.code] = false);
+    };
+    
+    game.keyupListener = (e) => {
+        if (!game.isGameActive) return;
+        game.keys[e.code] = false;
+    };
+
+    document.addEventListener('keydown', game.keydownListener);
+    document.addEventListener('keyup', game.keyupListener);
 
     startButton.addEventListener('click', () => {
         game.playerName = playerNameInput.value || 'Player';
@@ -301,6 +313,7 @@ async function initGame() {
 
 function startGame() {
     startScreen.style.display = 'none';
+    game.isGameActive = true;
     document.getElementById('high-scores').classList.remove('hidden');
     fetchScores(); // Fetch initial scores
     game.gameLoop = requestAnimationFrame(update);
@@ -366,6 +379,8 @@ function renderGame() {
 }
 
 function update() {
+    if (!game.isGameActive) return;
+    
     updateGameLogic();
     renderGame();
     game.gameLoop = requestAnimationFrame(update);
@@ -388,7 +403,13 @@ async function checkHighScore(score) {
 }
 
 async function gameOver() {
+    game.isGameActive = false;
     cancelAnimationFrame(game.gameLoop);
+    
+    // Remove event listeners
+    document.removeEventListener('keydown', game.keydownListener);
+    document.removeEventListener('keyup', game.keyupListener);
+    
     gameOverScreen.style.display = 'flex';
     finalScoreValue.textContent = game.score;
     
