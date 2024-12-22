@@ -422,6 +422,18 @@ async function gameOver() {
         highScoreInput.classList.remove('hidden');
         playerNameInput.focus();
         playerNameInput.value = '';
+        
+        // Add event listener for name submission
+        playerNameInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter' && playerNameInput.value.trim()) {
+                // Save the score
+                await saveHighScore(playerNameInput.value.trim(), game.score);
+                // Refresh the scoreboard
+                await fetchScores();
+                // Hide the input
+                highScoreInput.classList.add('hidden');
+            }
+        });
     } else {
         highScoreInput.classList.add('hidden');
     }
