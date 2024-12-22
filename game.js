@@ -396,7 +396,6 @@ function startGame() {
 }
 
 function updateGameLogic() {
-    // Add your game logic here
     game.player.move();
     game.bullets = game.bullets.filter(bullet => bullet.y > 0);
     game.bullets.forEach((bullet, index) => {
@@ -422,6 +421,14 @@ function updateGameLogic() {
             } else {
                 resetEnemyPosition(enemy);
             }
+        }
+    });
+
+    // Update explosions
+    explosions.forEach((explosion, index) => {
+        explosion.update();
+        if (explosion.isFinished()) {
+            explosions.splice(index, 1);
         }
     });
 
