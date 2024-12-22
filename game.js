@@ -114,8 +114,6 @@ const soundManager = new SoundManager();
 // DOM elements
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
-const startButton = document.getElementById('start-button');
-const playAgainButton = document.getElementById('play-again-button');
 const scoreValue = document.getElementById('scoreValue');
 const livesValue = document.getElementById('livesValue');
 const levelValue = document.getElementById('levelValue');
@@ -398,6 +396,7 @@ function startGame() {
 }
 
 function updateGameLogic() {
+    // Add your game logic here
     game.player.move();
     game.bullets = game.bullets.filter(bullet => bullet.y > 0);
     game.bullets.forEach((bullet, index) => {
@@ -427,21 +426,6 @@ function updateGameLogic() {
     });
 
     updateEnemySpawning(); // Call the enemy spawning logic
-    updateDifficulty(); // Call the difficulty update logic
-
-    // Update explosions
-    explosions.forEach((explosion, index) => {
-        explosion.update();
-        if (explosion.isFinished()) {
-            explosions.splice(index, 1);
-        }
-    });
-
-    // Increment score based on time survived
-    if (game.score % 1000 === 0 && game.score !== 0) {
-        game.level++;
-        levelValue.textContent = game.level;
-    }
 }
 
 function renderGame() {
