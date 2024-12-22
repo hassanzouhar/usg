@@ -1,4 +1,6 @@
-// game.js - Updated with Shooting Mechanism
+import { supabase } from './supabase.js';
+
+// game.js - Updated with Shooting Mechanism and Scoreboard Features
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -38,7 +40,8 @@ const game = {
     scoreMultiplier: 1,
     combo: 0,
     comboTimer: null,
-    highScores: JSON.parse(localStorage.getItem('highScores')) || [],
+    highScores: [],
+    isLoadingScores: false,
     enemySpawnInterval: 2000,
     enemySpeedMin: 1,
     enemySpeedMax: 2,
@@ -230,6 +233,37 @@ function loadImages() {
     });
 }
 
+async function fetchScores() {
+    game.isLoadingScores = true;
+    try {
+        const { data, error } = await supabase
+            .from('highscores')
+            .select('*')
+            .order('score', { ascending: false })
+            .limit(10);
+
+        if (error) throw error;
+        game.highScores = data;
+        updateScoreboardDisplay();
+    } catch (error) {
+        console.error('Error fetching scores:', error);
+    } finally {
+        game.isLoadingScores = false;
+    }
+}
+
+function updateScoreboardDisplay() {
+    const scoreboardList = document.getElementById('scoreboard-list');
+    if (!scoreboardList) return;
+
+    scoreboardList.innerHTML = '';
+    game.highScores.forEach((score, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${index + 1}. ${score.name}: ${score.score}`;
+        scoreboardList.appendChild(li);
+    });
+}
+
 async function initGame() {
     game.canvas = document.getElementById('gameCanvas');
     game.ctx = game.canvas.getContext('2d');
@@ -263,6 +297,7 @@ async function initGame() {
 
 function startGame() {
     startScreen.style.display = 'none';
+    fetchScores(); // Fetch initial scores
     game.gameLoop = requestAnimationFrame(update);
 }
 
@@ -396,18 +431,25 @@ function updateScore(points) {
     scoreValue.textContent = game.score;
 }
 
-function updateHighScores() {
-    const score = {
+async function updateHighScores() {
+    const scoreData = {
         name: game.playerName,
         score: game.score,
-        date: new Date().toISOString()
+        created_at: new Date().toISOString()
     };
     
-    game.highScores.push(score);
-    game.highScores.sort((a, b) => b.score - a.score);
-    game.highScores = game.highScores.slice(0, 10);
-    
-    localStorage.setItem('highScores', JSON.stringify(game.highScores));
+    try {
+        const { error } = await supabase
+            .from('highscores')
+            .insert(scoreData);
+
+        if (error) throw error;
+        
+        // Refresh the scoreboard
+        await fetchScores();
+    } catch (error) {
+        console.error('Error updating high scores:', error);
+    }
 }
 
 window.addEventListener('load', initGame);

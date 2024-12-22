@@ -5,11 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Galactic Space Fighter</title>
     <link rel="stylesheet" href="style.css">
+    <script src="env-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         #game-over-screen {
             display: none;
         }
-
+        
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #scoreboard {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+        }
+        
+        #high-scores-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
         /* Add other necessary styles for positioning and displaying elements */
     </style>
 </head>
@@ -20,6 +55,11 @@
             <div id="score">Score: <span id="scoreValue">0</span></div>
             <div id="lives">Lives: <span id="livesValue">3</span></div>
             <div id="level">Level: <span id="levelValue">1</span></div>
+            <div id="scoreboard" class="hidden" role="region" aria-label="High Scores">
+                <h3>High Scores</h3>
+                <div id="scores-loader" class="loader hidden"></div>
+                <ul id="high-scores-list" aria-live="polite"></ul>
+            </div>
         </div>
 
         <div id="start-screen" role="dialog" aria-labelledby="start-title">
@@ -35,6 +75,7 @@
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script src="supabase.js" type="module"></script>
+    <script src="game.js" type="module"></script>
 </body>
 </html>
