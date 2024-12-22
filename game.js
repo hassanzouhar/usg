@@ -266,7 +266,8 @@ function updateScoreboardDisplay() {
     scoreboardList.innerHTML = '';
     game.highScores.forEach((score, index) => {
         const li = document.createElement('li');
-        li.textContent = `${index + 1}. ${score.name}: ${score.score}`;
+        // Change score.name to score.player_name to match the database field
+        li.textContent = `${index + 1}. ${score.player_name}: ${score.score}`;
         scoreboardList.appendChild(li);
     });
 }
@@ -406,10 +407,6 @@ async function gameOver() {
     game.isGameActive = false;
     cancelAnimationFrame(game.gameLoop);
     
-    // Remove event listeners
-    document.removeEventListener('keydown', game.keydownListener);
-    document.removeEventListener('keyup', game.keyupListener);
-    
     gameOverScreen.style.display = 'flex';
     finalScoreValue.textContent = game.score;
     
@@ -423,19 +420,18 @@ async function gameOver() {
         playerNameInput.focus();
         playerNameInput.value = '';
         
-        // Add event listener for name submission
-        playerNameInput.addEventListener('keypress', async (e) => {
+        // Remove any existing listeners first
+        const saveScore = async (e) => {
             if (e.key === 'Enter' && playerNameInput.value.trim()) {
-                // Save the score
                 await saveHighScore(playerNameInput.value.trim(), game.score);
-                // Refresh the scoreboard
                 await fetchScores();
-                // Hide the input
                 highScoreInput.classList.add('hidden');
+                // Remove the listener after saving
+                playerNameInput.removeEventListener('keypress', saveScore);
             }
-        });
-    } else {
-        highScoreInput.classList.add('hidden');
+        };
+        
+        playerNameInput.addEventListener('keypress', saveScore);
     }
     
     highScores.classList.remove('hidden');
