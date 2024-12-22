@@ -266,15 +266,7 @@ function updateScoreboardDisplay() {
         li.textContent = `${index + 1}. ${score.name}: ${score.score}`;
         scoreboardList.appendChild(li);
     });
-    }
-
-    async function initGame() {
-async function initGame() {
-
-async function initGame() {
 }
-}
-
 
 async function initGame() {
     game.canvas = document.getElementById('gameCanvas');
@@ -452,12 +444,6 @@ async function updateHighScores() {
         await fetchScores();
     } catch (error) {
         console.error('Error updating high scores:', error);
-    }
-}
-
-
-window.addEventListener('load', initGame);
-window.addEventListener('load', initGame);
     }
 }
 
