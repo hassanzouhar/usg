@@ -288,7 +288,7 @@ async function initGame() {
         if (!game.isGameActive) return;
         game.keys[e.code] = true;
         const now = Date.now();
-        if (e.code === 'Space' && now - game.lastShotTime > shootingCooldown) {
+        if (e.code === 'Space' && now - game.lastShotTime > SHOOTING_COOLDOWN) {
             game.bullets.push(new Bullet(game.player.x + game.player.width / 2 - BULLET_WIDTH / 2, game.player.y));
             game.lastShotTime = now;
             sounds.shoot.currentTime = 0;
