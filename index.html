@@ -86,13 +86,16 @@
 
         <div id="start-screen" role="dialog" aria-labelledby="start-title">
             <h1 id="start-title">Ultimate Galactic Space Fighter</h1>
-            <input type="text" id="player-name" aria-label="Enter your name" placeholder="Enter your name">
             <button id="start-button" aria-label="Start Game">Start Game</button>
         </div>
 
         <div id="game-over-screen" role="dialog" aria-labelledby="game-over-title" style="display: none;">
             <h2 id="game-over-title">Game Over</h2>
             <p id="final-score">Your Score: <span id="finalScoreValue">0</span></p>
+            <div id="high-score-input" class="hidden">
+                <p>Congratulations! You achieved a high score!</p>
+                <input type="text" id="player-name" aria-label="Enter your name" placeholder="Enter your name">
+            </div>
             <button id="play-again-button" aria-label="Play Again">Play Again</button>
         </div>
     </div>

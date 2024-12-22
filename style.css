@@ -208,3 +208,17 @@ button:hover {
         font-size: 14px;
     }
 }
+
+#high-score-input {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#high-score-input.hidden {
+    display: none;
+}
+
+#high-score-input p {
+    color: #FFEB3B;
+    margin-bottom: 15px;
+}
