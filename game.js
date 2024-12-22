@@ -394,25 +394,19 @@ async function gameOver() {
     
     const isHighScore = await checkHighScore(game.score);
     const highScoreInput = document.getElementById('high-score-input');
+    const highScores = document.getElementById('high-scores');
     const playerNameInput = document.getElementById('player-name');
     
     if (isHighScore) {
         highScoreInput.classList.remove('hidden');
         playerNameInput.focus();
         playerNameInput.value = '';
-        
-        // Wait for name input before updating high scores
-        playAgainButton.addEventListener('click', async () => {
-            if (playerNameInput.value.trim()) {
-                game.playerName = playerNameInput.value.trim();
-                await updateHighScores();
-            }
-            restartGame();
-        }, { once: true });
     } else {
         highScoreInput.classList.add('hidden');
-        document.getElementById('high-scores').classList.remove('hidden');
     }
+    
+    highScores.classList.remove('hidden');
+    await fetchScores();
 }
 
 function restartGame() {

@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <script src="env-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
 </head>
 <body>
     <div id="game-container" role="main">
@@ -16,11 +15,6 @@
             <div id="score">Score: <span id="scoreValue">0</span></div>
             <div id="lives">Lives: <span id="livesValue">3</span></div>
             <div id="level">Level: <span id="levelValue">1</span></div>
-            <div id="high-scores" class="hidden" role="region" aria-label="High Scores">
-                <h2>High Scores</h2>
-                <div id="scores-loader" class="loader hidden"></div>
-                <ul id="high-scores-list" aria-live="polite"></ul>
-            </div>
         </div>
 
         <div id="start-screen" role="dialog" aria-labelledby="start-title">
@@ -34,6 +28,11 @@
             <div id="high-score-input" class="hidden">
                 <p>Congratulations! You achieved a high score!</p>
                 <input type="text" id="player-name" aria-label="Enter your name" placeholder="Enter your name">
+            </div>
+            <div id="high-scores" class="hidden" role="region" aria-label="High Scores">
+                <h2>High Scores</h2>
+                <div id="scores-loader" class="loader hidden"></div>
+                <ul id="high-scores-list" aria-live="polite"></ul>
             </div>
             <button id="play-again-button" aria-label="Play Again">Play Again</button>
         </div>
