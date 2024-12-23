@@ -146,7 +146,6 @@ const POWERUP_TYPES = {
 // Global variables
 let lastDifficultyIncrease = 0;
 let lastEnemySpawnTime = 0;
-const explosions = [];
 
 const game = {
     canvas: null,
@@ -181,7 +180,8 @@ const game = {
     isGameActive: false,
     keydownListener: null,
     keyupListener: null,
-    lastPowerUpSpawn: 0
+    lastPowerUpSpawn: 0,
+    explosions: []
 };
 
 // Asset loading and game initialization will be handled by loadGame() function
@@ -768,7 +768,7 @@ function updateGameLogic() {
                 updateScore(100); // Increment score when an enemy is destroyed
                 game.bullets.splice(index, 1);
                 console.log('Creating explosion effect');
-                explosions.push(new Explosion(
+                game.explosions.push(new Explosion(
                     enemy.x + enemy.width / 2,
                     enemy.y + enemy.height / 2
                 ));
@@ -879,7 +879,7 @@ function renderGame() {
     // Draw other game objects
     game.player.draw();
     game.enemies.forEach(enemy => enemy.draw());
-    explosions.forEach(explosion => explosion.draw(game.ctx));
+    game.explosions.forEach(explosion => explosion.draw(game.ctx));
     game.powerUps.forEach(powerUp => powerUp.draw());
     
     // Draw UI elements last
