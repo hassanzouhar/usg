@@ -638,6 +638,43 @@ function updateGameLogic() {
     });
 }
 
+// Add collision visualization and logging
+function checkCollision(obj1, obj2) {
+    const collision = (
+        obj1.x < obj2.x + obj2.width &&
+        obj1.x + obj1.width > obj2.x &&
+        obj1.y < obj2.y + obj2.height &&
+        obj1.y + obj2.height > obj2.y
+    );
+
+    if (collision) {
+        console.log('Collision detected:', {
+            object1: {
+                x: Math.round(obj1.x),
+                y: Math.round(obj1.y),
+                width: obj1.width,
+                height: obj1.height,
+                right: Math.round(obj1.x + obj1.width),
+                bottom: Math.round(obj1.y + obj1.height)
+            },
+            object2: {
+                x: Math.round(obj2.x),
+                y: Math.round(obj2.y),
+                width: obj2.width,
+                height: obj2.height,
+                right: Math.round(obj2.x + obj2.width),
+                bottom: Math.round(obj2.y + obj2.height)
+            },
+            overlap: {
+                x: Math.max(0, Math.min(obj1.x + obj1.width, obj2.x + obj2.width) - Math.max(obj1.x, obj2.x)),
+                y: Math.max(0, Math.min(obj1.y + obj1.height, obj2.y + obj2.height) - Math.max(obj1.y, obj2.y))
+            }
+        });
+    }
+
+    return collision;
+}
+
 function renderGame() {
     // Draw the background first
     game.ctx.drawImage(game.assets.backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
@@ -710,6 +747,17 @@ function renderGame() {
             game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
         });
     }
+
+    // Debug visualization
+    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+    game.bullets.forEach(bullet => {
+        game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
+    });
+    
+    game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+    game.enemies.forEach(enemy => {
+        game.ctx.strokeRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
+    });
 }
 
 function update() {
@@ -718,13 +766,6 @@ function update() {
     updateGameLogic();
     renderGame();
     game.gameLoop = requestAnimationFrame(update);
-}
-
-function checkCollision(obj1, obj2) {
-    return obj1.x < obj2.x + obj2.width &&
-           obj1.x + obj2.width > obj2.x &&
-           obj1.y < obj2.y + obj2.height &&
-           obj1.y + obj2.height > obj2.y;
 }
 
 function resetEnemyPosition(enemy) {
