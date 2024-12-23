@@ -39,44 +39,50 @@ export class GameLoop {
 
 export class Game {
     constructor() {
-        this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.assetManager = new AssetManager();
-        this.soundManager = new SoundManager();
-        this.collisionManager = new CollisionManager();
-        this.debug = window.DEBUG || {
-            COLLISIONS: false,
-            POWERUPS: false,
-            EXPLOSIONS: false,
-            SOUND: true,
-            ASSETS: true
-        };
         this.state = {
             isActive: false,
             lastFrameTime: 0,
-            deltaTime: 0
+            deltaTime: 0,
+            assetsLoaded: false,
+            loadingError: null
         };
     }
 
-    async init() {
-        await this.assetManager.loadAssets();
-        await this.soundManager.init();
-        this.setupEventListeners();
-        this.state.entities.player = new Player(
-            GAME_CONSTANTS.DIMENSIONS.CANVAS.WIDTH / 2,
-            GAME_CONSTANTS.DIMENSIONS.CANVAS.HEIGHT - 100
-        );
-
-        // Check if in development mode using hostname
-        if (window.location.hostname === 'localhost') {
-            const debugPanel = document.getElementById('debug-panel');
-            if (debugPanel) {
-                debugPanel.classList.remove('hidden');
+    async initialize() {
+        try {
+            this.canvas = document.getElementById('gameCanvas');
+            if (!this.canvas) {
+                throw new Error('Canvas element not found');
             }
+            
+            this.ctx = this.canvas.getContext('2d');
+            await this.loadAssets();
+            this.setupEventListeners();
+            this.state.assetsLoaded = true;
+            
+        } catch (error) {
+            this.state.loadingError = error;
+            console.error('Game initialization failed:', error);
+        }
+    }
+
+    async loadAssets() {
+        try {
+            await Promise.all([
+                this.assetManager.loadAssets(),
+                this.soundManager.init()
+            ]);
+        } catch (error) {
+            throw new Error(`Asset loading failed: ${error.message}`);
         }
     }
 
     start() {
+        if (!this.state.assetsLoaded) {
+            console.error('Cannot start game - assets not loaded');
+            return;
+        }
+        
         this.state.isActive = true;
         this.state.lastFrameTime = performance.now();
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
@@ -85,18 +91,18 @@ export class Game {
     gameLoop(timestamp) {
         if (!this.state.isActive) return;
         
-        // Calculate delta time for smooth animations
-        this.state.deltaTime = timestamp - this.state.lastFrameTime;
-        this.state.lastFrameTime = timestamp;
+        try {
+            this.state.deltaTime = timestamp - this.state.lastFrameTime;
+            this.state.lastFrameTime = timestamp;
 
-        // Update game state
-        this.update(this.state.deltaTime);
-        
-        // Render frame
-        this.render();
+            this.update(this.state.deltaTime);
+            this.render();
 
-        // Queue next frame
-        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+            requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+        } catch (error) {
+            console.error('Game loop error:', error);
+            this.stop();
+        }
     }
 
     stop() {
@@ -163,3 +169,17 @@ class GameInstance extends Game {
         this.drawPowerUpIndicator();
     }
 }
+
+// Entry point
+window.addEventListener('load', async () => {
+    const game = new GameInstance();
+    try {
+        await game.initialize();
+        
+        const startButton = document.getElementById('start-button');
+        startButton?.addEventListener('click', () => game.start());
+        
+    } catch (error) {
+        console.error('Game initialization failed:', error);
+    }
+});
