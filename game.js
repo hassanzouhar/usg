@@ -70,6 +70,7 @@ class SoundPool {
         for (let i = 0; i < poolSize; i++) {
             const sound = new Audio(soundSrc);
             sound.volume = 0.5; // Adjust volume as needed
+            sound.preload = 'auto'; // Preload the sound
             this.pool.push(sound);
         }
     }
@@ -95,12 +96,18 @@ class SoundManager {
             gameOver: new Audio('sounds/gameover.wav') // Single instance for game over
         };
         
+        this.sounds.gameOver.preload = 'auto'; // Preload the game over sound
         this.muted = false;
     }
 
     play(soundName) {
         if (this.muted) return;
-        this.sounds[soundName].play();
+        if (this.sounds[soundName] instanceof SoundPool) {
+            this.sounds[soundName].play();
+        } else {
+            this.sounds[soundName].currentTime = 0;
+            this.sounds[soundName].play();
+        }
     }
 
     toggleMute() {
@@ -333,6 +340,12 @@ async function initGame() {
     
     // Load assets
     await loadImages();
+    
+    // Preload sounds
+    soundManager.play('shoot');
+    soundManager.play('explosion');
+    soundManager.play('powerUp');
+    soundManager.play('gameOver');
     
     // Create player
     game.player = new Player(
