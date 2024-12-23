@@ -365,8 +365,9 @@ class Bullet extends GameObject {
 
 class Explosion {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
+        // Validate and constrain coordinates
+        this.x = Math.max(0, Math.min(x, game.canvas.width));
+        this.y = Math.max(0, Math.min(y, game.canvas.height));
         this.radius = 0;
         this.maxRadius = 30;
         this.expansionRate = 2;
@@ -766,30 +767,24 @@ function updateGameLogic() {
         bullet.move();
         game.enemies.forEach((enemy, enemyIndex) => {
             if (checkCollision(bullet, enemy)) {
-                console.log('Collision Details:', {
-                    bullet: {
-                        x: Math.round(bullet.x),
-                        y: Math.round(bullet.y),
-                        width: BULLET_WIDTH,
-                        height: BULLET_HEIGHT
-                    },
-                    enemy: {
-                        x: Math.round(enemy.x),
-                        y: Math.round(enemy.y),
-                        width: ENEMY_WIDTH,
-                        height: ENEMY_HEIGHT
-                    }
+                // Calculate center of enemy for explosion
+                const explosionX = enemy.x + (ENEMY_WIDTH / 2);
+                const explosionY = enemy.y + (ENEMY_HEIGHT / 2);
+                
+                console.log('Collision position:', {
+                    enemyPos: { x: enemy.x, y: enemy.y },
+                    bulletPos: { x: bullet.x, y: bullet.y },
+                    explosionPos: { x: explosionX, y: explosionY }
                 });
+
+                // Create explosion at enemy center
+                game.explosions.push(new Explosion(explosionX, explosionY));
+                
+                // Handle collision effects
                 resetEnemyPosition(enemy);
-                updateScore(100); // Increment score when an enemy is destroyed
+                updateScore(100);
                 game.bullets.splice(index, 1);
-                console.log('Creating explosion effect');
-                game.explosions.push(new Explosion(
-                    enemy.x + enemy.width / 2,
-                    enemy.y + enemy.height / 2
-                ));
                 soundManager.play('explosion');
-                console.log('Playing explosion sound');
             }
         });
     });
