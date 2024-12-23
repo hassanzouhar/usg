@@ -334,36 +334,39 @@ class Explosion {
         this.maxRadius = 30;
         this.expansionRate = 2;
         this.opacity = 1;
-        console.log(`New explosion created at (${Math.round(x)}, ${Math.round(y)})`);
+        this.fadeRate = 0.05; // Add missing fadeRate initialization
+        Logger.explosion('created', `Position: (${Math.round(x)}, ${Math.round(y)})`);
     }
 
     update() {
         if (this.radius < this.maxRadius) {
             this.radius += this.expansionRate;
-            console.log(`Explosion expanding: ${Math.round(this.radius)}/${this.maxRadius}`);
+            Logger.explosion('expanding', `Radius: ${Math.round(this.radius)}/${this.maxRadius}`);
         }
         if (this.opacity > 0) {
             this.opacity -= this.fadeRate;
-            console.log(`Explosion fading: ${this.opacity.toFixed(2)}`);
+            Logger.explosion('fading', `Opacity: ${this.opacity.toFixed(2)}`);
         }
     }
 
     draw(ctx) {
-        if (this.opacity > 0) {
-            ctx.save();
-            ctx.globalAlpha = this.opacity;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = 'orange';
-            ctx.fill();
-            ctx.restore();
-        }
+        if (this.opacity <= 0) return;
+        
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'orange';
+        ctx.fill();
+        ctx.restore();
+        
+        Logger.explosion('drawing', `Position: (${Math.round(this.x)}, ${Math.round(this.y)}), Radius: ${Math.round(this.radius)}, Opacity: ${this.opacity.toFixed(2)}`);
     }
 
     isFinished() {
         const finished = this.opacity <= 0;
         if (finished) {
-            console.log('Explosion animation complete');
+            Logger.explosion('completed', `Final position: (${Math.round(this.x)}, ${Math.round(this.y)})`);
         }
         return finished;
     }
@@ -752,88 +755,20 @@ function checkCollision(obj1, obj2) {
 }
 
 function renderGame() {
-    // Draw the background first
+    // Draw background
     game.ctx.drawImage(game.assets.backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
     
-    // Draw the player
-    game.player.draw();
-    
-    // Draw the bullets
-    game.bullets.forEach(bullet => {
-        game.ctx.fillStyle = 'yellow';
-        game.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    });
-    
-    // Draw the enemies
-    game.enemies.forEach(enemy => enemy.draw());
-    
-    // Draw the explosions last to ensure they are on top
+    // Draw explosions
     explosions.forEach(explosion => explosion.draw(game.ctx));
-
-    // Draw power-ups
+    
+    // Draw game objects
+    game.player.draw();
+    game.bullets.forEach(bullet => bullet.draw());
+    game.enemies.forEach(enemy => enemy.draw());
     game.powerUps.forEach(powerUp => powerUp.draw());
-
-    // Draw power-up indicator
+    
+    // Draw UI elements last
     drawPowerUpIndicator();
-
-    // Draw hitboxes for debugging
-    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-    game.ctx.strokeRect(
-        game.player.x, game.player.y,
-        game.player.width, game.player.height
-    );
-    
-    game.powerUps.forEach(powerUp => {
-        game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-        game.ctx.strokeRect(
-            powerUp.x, powerUp.y,
-            powerUp.width, powerUp.height
-        );
-    });
-
-    // Draw collision boxes
-    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-    game.ctx.strokeRect(
-        game.player.x, game.player.y,
-        PLAYER_WIDTH, PLAYER_HEIGHT
-    );
-    
-    game.powerUps.forEach(powerUp => {
-        game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-        game.ctx.strokeRect(
-            powerUp.x, powerUp.y,
-            POWERUP_WIDTH, POWERUP_HEIGHT
-        );
-    });
-
-    renderHitboxes();
-
-    // Debug hitboxes
-    if (true) { // Toggle for debugging
-        game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-        
-        // Enemy hitboxes
-        game.enemies.forEach(enemy => {
-            game.ctx.strokeRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
-        });
-        
-        // Bullet hitboxes
-        game.bullets.forEach(bullet => {
-            game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-            game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
-        });
-    }
-
-    // Debug visualization
-    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-    game.bullets.forEach(bullet => {
-        game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
-    });
-    
-    game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-    game.enemies.forEach(enemy => {
-        game.ctx.strokeRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
-    });
 }
 
 function update() {
