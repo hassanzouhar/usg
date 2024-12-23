@@ -558,10 +558,6 @@ function loadImages() {
         game.assets.rapidFirePowerUp = new Image();
         game.assets.multiShotPowerUp = new Image();
 
-        let loadedImages = 0;
-        const totalImages = 6;
-        const imageStatus = {};
-
         function onImageLoad(imageName) {
             loadedImages++;
             imageStatus[imageName] = 'loaded';
