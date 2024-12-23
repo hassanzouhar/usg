@@ -21,6 +21,8 @@ const SOUND_POOL_SIZE = 5;
 const AUDIO_CONTEXT = new (window.AudioContext || window.webkitAudioContext)();
 const POWERUP_SPAWN_INTERVAL = 15000; // First power-up after 15 seconds, then regularly
 const POWERUP_SPAWN_CHANCE = 0.2; // 20% chance to spawn when interval is met
+const POWERUP_WIDTH = 30;
+const POWERUP_HEIGHT = 30;
 
 // Global variables
 let lastDifficultyIncrease = 0;
@@ -262,7 +264,7 @@ class PowerUp extends GameObject {
         const image = type === 'shield' ? game.assets.shieldPowerUp :
                      type === 'rapidFire' ? game.assets.rapidFirePowerUp :
                      game.assets.multiShotPowerUp;
-        super(x, y, 30, 30, image);
+        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, image);
         this.type = type;
         this.speed = 2;
     }
