@@ -428,6 +428,8 @@ class Explosion {
                 ctx.strokeStyle = 'red';
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
             }
+        } else {
+            console.error('Explosion sprite sheet not loaded');
         }
     }
 
