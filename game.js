@@ -256,8 +256,11 @@ class Explosion {
 
 class PowerUp extends GameObject {
     constructor(x, y, type) {
-        super(x, y, 30, 30, null);
-        this.type = type; // 'shield', 'rapidFire', 'multiShot'
+        const image = type === 'shield' ? game.assets.shieldPowerUp :
+                     type === 'rapidFire' ? game.assets.rapidFirePowerUp :
+                     game.assets.multiShotPowerUp;
+        super(x, y, 30, 30, image);
+        this.type = type;
         this.speed = 2;
     }
 
@@ -279,9 +282,12 @@ function loadImages() {
         game.assets.backgroundImage = new Image();
         game.assets.playerImage = new Image();
         game.assets.enemyImage = new Image();
+        game.assets.shieldPowerUp = new Image();
+        game.assets.rapidFirePowerUp = new Image();
+        game.assets.multiShotPowerUp = new Image();
 
         let loadedImages = 0;
-        const totalImages = 3;
+        const totalImages = 6;
 
         function onImageLoad() {
             loadedImages++;
@@ -293,10 +299,16 @@ function loadImages() {
         game.assets.backgroundImage.onload = onImageLoad;
         game.assets.playerImage.onload = onImageLoad;
         game.assets.enemyImage.onload = onImageLoad;
+        game.assets.shieldPowerUp.onload = onImageLoad;
+        game.assets.rapidFirePowerUp.onload = onImageLoad;
+        game.assets.multiShotPowerUp.onload = onImageLoad;
 
         game.assets.backgroundImage.src = 'img/space-background.png';
         game.assets.playerImage.src = 'img/player-ship.png';
         game.assets.enemyImage.src = 'img/enemy-ship.png';
+        game.assets.shieldPowerUp.src = 'img/shield-powerup.png';
+        game.assets.rapidFirePowerUp.src = 'img/rapid-fire-powerup.png';
+        game.assets.multiShotPowerUp.src = 'img/multi-shot-powerup.png';
     });
 }
 
@@ -373,10 +385,22 @@ async function initGame() {
         game.keys[e.code] = true;
         if (e.code === 'Space' && game.isGameActive && 
             Date.now() - game.lastShotTime > SHOOTING_COOLDOWN) {
-            game.bullets.push(new Bullet(
-                game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
-                game.player.y
-            ));
+            if (game.player.hasMultiShot) {
+                // Create three bullets
+                for (let angle = -15; angle <= 15; angle += 15) {
+                    const bullet = new Bullet(
+                        game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
+                        game.player.y
+                    );
+                    bullet.angle = angle;
+                    game.bullets.push(bullet);
+                }
+            } else {
+                game.bullets.push(new Bullet(
+                    game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
+                    game.player.y
+                ));
+            }
             game.lastShotTime = Date.now();
             soundManager.play('shoot');
         }
@@ -474,6 +498,9 @@ function renderGame() {
     
     // Draw the explosions last to ensure they are on top
     explosions.forEach(explosion => explosion.draw(game.ctx));
+
+    // Draw power-ups
+    game.powerUps.forEach(powerUp => powerUp.draw());
 }
 
 function update() {
@@ -486,7 +513,7 @@ function update() {
 
 function checkCollision(obj1, obj2) {
     return obj1.x < obj2.x + obj2.width &&
-           obj1.x + obj1.width > obj2.x &&
+           obj1.x + obj2.width > obj2.x &&
            obj1.y < obj2.y + obj2.height &&
            obj1.y + obj2.height > obj2.y;
 }
@@ -611,6 +638,35 @@ async function updateHighScores() {
         await fetchScores();
     } catch (error) {
         console.error('Error updating high scores:', error);
+    }
+}
+
+function activatePowerUp(type) {
+    // Clear existing power-up timer
+    if (game.powerUpTimer) {
+        clearTimeout(game.powerUpTimer);
+    }
+
+    // Apply power-up effect
+    switch (type) {
+        case 'shield':
+            game.player.isShielded = true;
+            game.powerUpTimer = setTimeout(() => {
+                game.player.isShielded = false;
+            }, game.powerUpDuration);
+            break;
+        case 'rapidFire':
+            SHOOTING_COOLDOWN = 75; // Half the normal cooldown
+            game.powerUpTimer = setTimeout(() => {
+                SHOOTING_COOLDOWN = 150;
+            }, game.powerUpDuration);
+            break;
+        case 'multiShot':
+            game.player.hasMultiShot = true;
+            game.powerUpTimer = setTimeout(() => {
+                game.player.hasMultiShot = false;
+            }, game.powerUpDuration);
+            break;
     }
 }
 
