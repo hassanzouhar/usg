@@ -25,21 +25,21 @@ const POWERUP_WIDTH = 30;
 const POWERUP_HEIGHT = 30;
 
 const POWERUP_TYPES = {
-    SHIELD: {
+    'shield': {
         type: 'shield',
         duration: 5000,
         color: 'blue',
         effect: (player) => player.hasShield = true,
         remove: (player) => player.hasShield = false
     },
-    RAPID_FIRE: {
-        type: 'rapidFire',
+    'rapidFire': {
+        type: 'rapidFire', 
         duration: 5000,
         color: 'red',
         effect: (player) => player.cooldownReduction = 0.5,
         remove: (player) => player.cooldownReduction = 1
     },
-    MULTI_SHOT: {
+    'multiShot': {
         type: 'multiShot',
         duration: 5000,
         color: 'green',
@@ -285,14 +285,15 @@ class Explosion {
 
 class PowerUp extends GameObject {
     constructor(x, y, type) {
-        // Validate type and get config
-        if (!POWERUP_TYPES[type]) {
+        // Normalize type to lowercase for comparison
+        const normalizedType = type.toLowerCase();
+        if (!POWERUP_TYPES[normalizedType]) {
             console.error(`Invalid powerup type: ${type}`);
-            type = 'SHIELD'; // Default to shield if invalid type
+            type = 'shield'; // Default to shield if invalid type
         }
-        const powerUpConfig = POWERUP_TYPES[type];
+        const powerUpConfig = POWERUP_TYPES[normalizedType];
         super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${type}PowerUp`]);
-        this.type = type;
+        this.type = normalizedType;
         this.speed = 2;
         this.config = powerUpConfig;
     }
