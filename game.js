@@ -285,6 +285,11 @@ class Explosion {
 
 class PowerUp extends GameObject {
     constructor(x, y, type) {
+        // Validate type and get config
+        if (!POWERUP_TYPES[type]) {
+            console.error(`Invalid powerup type: ${type}`);
+            type = 'SHIELD'; // Default to shield if invalid type
+        }
         const powerUpConfig = POWERUP_TYPES[type];
         super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${type}PowerUp`]);
         this.type = type;
@@ -292,12 +297,24 @@ class PowerUp extends GameObject {
         this.config = powerUpConfig;
     }
 
-    // Add missing move method
     move() {
         this.y += this.speed;
     }
 
+    draw() {
+        super.draw();
+        if (this.config && this.config.color) {
+            game.ctx.beginPath();
+            game.ctx.arc(this.x + POWERUP_WIDTH/2, this.y + POWERUP_HEIGHT/2, 
+                        POWERUP_WIDTH * 0.6, 0, Math.PI * 2);
+            game.ctx.strokeStyle = this.config.color;
+            game.ctx.stroke();
+        }
+    }
+
     activate(player) {
+        if (!this.config || !this.config.effect) return;
+        
         this.config.effect(player);
         game.powerUpActive = this.type;
         game.powerUpStartTime = Date.now();
@@ -307,21 +324,13 @@ class PowerUp extends GameObject {
         }
         
         game.powerUpTimer = setTimeout(() => {
-            this.config.remove(player);
+            if (this.config.remove) {
+                this.config.remove(player);
+            }
             game.powerUpActive = null;
-        }, this.config.duration);
+        }, this.config.duration || 5000);
         
         soundManager.play('powerUp');
-    }
-
-    draw() {
-        super.draw();
-        // Add visual effect
-        game.ctx.beginPath();
-        game.ctx.arc(this.x + POWERUP_WIDTH/2, this.y + POWERUP_HEIGHT/2, 
-                    POWERUP_WIDTH * 0.6, 0, Math.PI * 2);
-        game.ctx.strokeStyle = this.config.color;
-        game.ctx.stroke();
     }
 }
 
