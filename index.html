@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Galactic Space Fighter</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Add debug mode toggle -->
+    <script>
+        window.DEBUG = {
+            COLLISIONS: true,
+            POWERUPS: true,
+            EXPLOSIONS: true,
+            SOUND: true,
+            ASSETS: true
+        };
+    </script>
+    
+    <!-- Load utilities first -->
+    <script src="core/logger.js" type="module"></script>
     <script src="env-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -50,6 +64,14 @@
         </div>
     </div>
 
+    <!-- Add debug UI if needed -->
+    <div id="debug-panel" class="hidden">
+        <button onclick="window.DEBUG.COLLISIONS = !window.DEBUG.COLLISIONS">Toggle Collision Debug</button>
+        <button onclick="window.DEBUG.POWERUPS = !window.DEBUG.POWERUPS">Toggle PowerUp Debug</button>
+        <button onclick="window.DEBUG.EXPLOSIONS = !window.DEBUG.EXPLOSIONS">Toggle Explosion Debug</button>
+    </div>
+
+    <!-- Update script loading order -->
     <script type="module" src="core/constants.js"></script>
     <script type="module" src="core/game.js"></script>
 </body>

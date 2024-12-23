@@ -70,3 +70,7 @@ export class Game {
         requestAnimationFrame(() => this.gameLoop());
     }
 }
+
+if (process.env.NODE_ENV === 'development') {
+    document.getElementById('debug-panel').classList.remove('hidden');
+}
