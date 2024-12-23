@@ -112,7 +112,7 @@ const POWERUP_TYPES = {
             console.log('Shield deactivated');
         }
     },
-    'rapidfire': {
+    'rapidfire': { // Changed from rapidFire to rapidfire
         type: 'rapidfire',
         duration: 5000,
         color: 'red',
@@ -717,7 +717,7 @@ function updateGameLogic() {
     // Power-up spawning
     const now = Date.now();
     if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = Object.keys(POWERUP_TYPES);
+        const types = ['shield', 'rapidfire']; // Use exact strings that match POWERUP_TYPES keys
         const randomType = types[Math.floor(Math.random() * types.length)];
         console.log(`Spawning ${randomType} power-up`);
         game.powerUps.push(new PowerUp(
