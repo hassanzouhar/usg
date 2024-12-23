@@ -39,12 +39,18 @@ export class GameLoop {
 
 export class Game {
     constructor() {
-        this.state = new GameState();
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.assetManager = new AssetManager();
         this.soundManager = new SoundManager();
         this.collisionManager = new CollisionManager();
+        this.debug = window.DEBUG || {
+            COLLISIONS: false,
+            POWERUPS: false,
+            EXPLOSIONS: false,
+            SOUND: true,
+            ASSETS: true
+        };
     }
 
     async init() {
@@ -55,6 +61,14 @@ export class Game {
             GAME_CONSTANTS.DIMENSIONS.CANVAS.WIDTH / 2,
             GAME_CONSTANTS.DIMENSIONS.CANVAS.HEIGHT - 100
         );
+
+        // Check if in development mode using hostname
+        if (window.location.hostname === 'localhost') {
+            const debugPanel = document.getElementById('debug-panel');
+            if (debugPanel) {
+                debugPanel.classList.remove('hidden');
+            }
+        }
     }
 
     start() {
@@ -69,8 +83,4 @@ export class Game {
         this.render();
         requestAnimationFrame(() => this.gameLoop());
     }
-}
-
-if (process.env.NODE_ENV === 'development') {
-    document.getElementById('debug-panel').classList.remove('hidden');
 }
