@@ -2,10 +2,10 @@ import { supabase, saveHighScore, getHighScores } from './supabase.js';
 
 // Add at top of file with other constants
 const DEBUG = {
-    COLLISIONS: true,
-    POWERUPS: true,
-    EXPLOSIONS: true,
-    SOUND: false,
+    COLLISIONS: false,
+    POWERUPS: false,
+    EXPLOSIONS: false,
+    SOUND: true,
     ASSETS: true
 };
 
@@ -106,15 +106,15 @@ const POWERUP_TYPES = {
         effect: (player) => player.hasShield = true,
         remove: (player) => player.hasShield = false
     },
-    'multishot': { // Changed from multiShot to multishot
-        type: 'multishot',
+    'multiShot': { // Changed from multiShot to multishot
+        type: 'multiShot',
         duration: 5000,
         color: 'green',
         effect: (player) => player.hasMultiShot = true,
         remove: (player) => player.hasMultiShot = false
     },
-    'rapidfire': { // Changed from rapidFire to rapidfire
-        type: 'rapidfire',
+    'rapidFire': { // Changed from rapidFire to rapidfire
+        type: 'rapidFire',
         duration: 5000,
         color: 'red',
         effect: (player) => player.cooldownReduction = 0.5,
