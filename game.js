@@ -1,5 +1,79 @@
 import { supabase, saveHighScore, getHighScores } from './supabase.js';
 
+// Add at top of file with other constants
+const DEBUG = {
+    COLLISIONS: true,
+    POWERUPS: true,
+    EXPLOSIONS: true,
+    SOUND: false,
+    ASSETS: true
+};
+
+// Create logging utility
+const Logger = {
+    collision(obj1, obj2, overlap) {
+        if (!DEBUG.COLLISIONS) return;
+        
+        console.log('%cCollision', 'color: yellow', {
+            object1: {
+                type: obj1.constructor.name,
+                x: Math.round(obj1.x),
+                y: Math.round(obj1.y),
+                width: obj1.width,
+                height: obj1.height
+            },
+            object2: {
+                type: obj2.constructor.name,
+                x: Math.round(obj2.x),
+                y: Math.round(obj2.y),
+                width: obj2.width,
+                height: obj2.height
+            },
+            overlap
+        });
+    },
+
+    powerup(action, type, position) {
+        if (!DEBUG.POWERUPS) return;
+        
+        console.log('%cPowerUp', 'color: cyan', {
+            action,
+            type,
+            position: {
+                x: Math.round(position.x),
+                y: Math.round(position.y)
+            }
+        });
+    },
+
+    explosion(phase, data) {
+        if (!DEBUG.EXPLOSIONS) return;
+        
+        console.log('%cExplosion', 'color: orange', {
+            phase,
+            ...data
+        });
+    },
+
+    sound(action, soundName) {
+        if (!DEBUG.SOUND) return;
+        
+        console.log('%cSound', 'color: green', {
+            action,
+            sound: soundName
+        });
+    },
+
+    asset(status, name) {
+        if (!DEBUG.ASSETS) return;
+        
+        console.log('%cAsset', 'color: blue', {
+            status,
+            name
+        });
+    }
+};
+
 // Game Constants
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -260,7 +334,6 @@ class Explosion {
         this.maxRadius = 30;
         this.expansionRate = 2;
         this.opacity = 1;
-        this.fadeRate = 0.05;
         console.log(`New explosion created at (${Math.round(x)}, ${Math.round(y)})`);
     }
 
@@ -667,39 +740,15 @@ function checkCollision(obj1, obj2) {
     );
 
     if (collision) {
-        // Calculate overlap
-        const overlapX = Math.min(obj1Right, obj2Right) - Math.max(obj1.x, obj2.x);
-        const overlapY = Math.min(obj1Bottom, obj2Bottom) - Math.max(obj1.y, obj2.y);
-
-        console.log('Collision detected:', {
-            object1: {
-                x: Math.round(obj1.x),
-                y: Math.round(obj1.y),
-                width: obj1.width,
-                height: obj1.height,
-                right: Math.round(obj1Right),
-                bottom: Math.round(obj1Bottom)
-            },
-            object2: {
-                x: Math.round(obj2.x),
-                y: Math.round(obj2.y),
-                width: obj2.width,
-                height: obj2.height,
-                right: Math.round(obj2Right),
-                bottom: Math.round(obj2Bottom)
-            },
-            overlap: {
-                x: Math.round(overlapX),
-                y: Math.round(overlapY),
-                total: Math.round(overlapX * overlapY)
-            }
-        });
-
-        // Add minimum overlap threshold
-        return (overlapX * overlapY) > 25; // Require meaningful collision
+        const overlap = {
+            x: Math.min(obj1Right, obj2Right) - Math.max(obj1.x, obj2.x),
+            y: Math.min(obj1Bottom, obj2Bottom) - Math.max(obj1.y, obj2.y)
+        };
+        
+        Logger.collision(obj1, obj2, overlap);
     }
 
-    return false;
+    return collision;
 }
 
 function renderGame() {
