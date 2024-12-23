@@ -19,6 +19,8 @@ const MAX_ENEMIES = 10;
 const ENEMY_SPEED_INCREASE = 0.2;
 const SOUND_POOL_SIZE = 5;
 const AUDIO_CONTEXT = new (window.AudioContext || window.webkitAudioContext)();
+const POWERUP_SPAWN_INTERVAL = 15000; // First power-up after 15 seconds, then regularly
+const POWERUP_SPAWN_CHANCE = 0.2; // 20% chance to spawn when interval is met
 
 // Global variables
 let lastDifficultyIncrease = 0;
@@ -57,7 +59,8 @@ const game = {
     },
     isGameActive: false,
     keydownListener: null,
-    keyupListener: null
+    keyupListener: null,
+    lastPowerUpSpawn: 0
 };
 
 // Asset loading and game initialization will be handled by loadGame() function
@@ -478,6 +481,25 @@ function updateGameLogic() {
     });
 
     updateEnemySpawning(); // Call the enemy spawning logic
+
+    // Power-up spawning
+    const now = Date.now();
+    if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
+        const types = ['shield', 'rapidFire', 'multiShot'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        game.powerUps.push(new PowerUp(
+            Math.random() * (game.canvas.width - POWERUP_WIDTH),
+            -POWERUP_HEIGHT,
+            randomType
+        ));
+        game.lastPowerUpSpawn = now;
+    }
+
+    // Update existing power-ups
+    game.powerUps = game.powerUps.filter(powerUp => {
+        powerUp.move();
+        return powerUp.y < game.canvas.height;
+    });
 }
 
 function renderGame() {
