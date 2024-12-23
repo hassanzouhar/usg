@@ -292,6 +292,11 @@ class PowerUp extends GameObject {
         this.config = powerUpConfig;
     }
 
+    // Add missing move method
+    move() {
+        this.y += this.speed;
+    }
+
     activate(player) {
         this.config.effect(player);
         game.powerUpActive = this.type;
