@@ -11,10 +11,17 @@
 <body>
     <div id="game-container" role="main">
         <canvas id="gameCanvas" aria-label="Game Canvas"></canvas>
+        
         <div id="ui" role="complementary">
             <div id="score">Score: <span id="scoreValue">0</span></div>
             <div id="lives">Lives: <span id="livesValue">3</span></div>
             <div id="level">Level: <span id="levelValue">1</span></div>
+            <button id="muteButton" aria-label="Toggle Sound">🔊</button>
+        </div>
+
+        <div id="loading-screen" role="alert" class="hidden">
+            <div class="loader"></div>
+            <p>Loading game assets...</p>
         </div>
 
         <div id="start-screen" role="dialog" aria-labelledby="start-title">
@@ -36,9 +43,14 @@
             </div>
             <button id="play-again-button" aria-label="Play Again">Play Again</button>
         </div>
+
+        <div id="power-up-indicator" class="hidden" role="status">
+            <div class="power-up-bar"></div>
+            <p class="power-up-name"></p>
+        </div>
     </div>
 
-    <script src="supabase.js" type="module"></script>
-    <script src="game.js" type="module"></script>
+    <script type="module" src="core/constants.js"></script>
+    <script type="module" src="core/game.js"></script>
 </body>
 </html>
