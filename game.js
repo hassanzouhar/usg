@@ -101,41 +101,44 @@ const POWERUP_HEIGHT = 30;
 const POWERUP_TYPES = {
     'shield': {
         type: 'shield',
+        imageKey: 'shieldPowerUp',
         duration: 5000,
         color: 'blue',
         effect: (player) => {
             player.hasShield = true;
-            console.log('Shield activated');
+            Logger.powerup('activate', 'shield');
         },
         remove: (player) => {
             player.hasShield = false;
-            console.log('Shield deactivated');
-        }
-    },
-    'rapidfire': { // Changed from rapidFire to rapidfire
-        type: 'rapidfire',
-        duration: 5000,
-        color: 'red',
-        effect: (player) => {
-            player.cooldownReduction = 0.5;
-            console.log('Rapid fire activated');
-        },
-        remove: (player) => {
-            player.cooldownReduction = 1;
-            console.log('Rapid fire deactivated');
+            Logger.powerup('deactivate', 'shield');
         }
     },
     'multishot': {
         type: 'multishot',
+        imageKey: 'multiShotPowerUp',
         duration: 5000,
         color: 'green',
         effect: (player) => {
             player.hasMultiShot = true;
-            console.log('Multi-shot activated');
+            Logger.powerup('activate', 'multishot');
         },
         remove: (player) => {
             player.hasMultiShot = false;
-            console.log('Multi-shot deactivated');
+            Logger.powerup('deactivate', 'multishot');
+        }
+    },
+    'rapidfire': {
+        type: 'rapidfire',
+        imageKey: 'rapidFirePowerUp',
+        duration: 5000,
+        color: 'red',
+        effect: (player) => {
+            player.cooldownReduction = 0.5;
+            Logger.powerup('activate', 'rapidfire');
+        },
+        remove: (player) => {
+            player.cooldownReduction = 1;
+            Logger.powerup('deactivate', 'rapidfire');
         }
     }
 };
@@ -406,14 +409,22 @@ class PowerUp extends GameObject {
     constructor(x, y, type) {
         const normalizedType = type.toLowerCase();
         if (!POWERUP_TYPES[normalizedType]) {
-            console.error(`Invalid powerup type: ${type}`);
-            type = 'shield';
+            Logger.powerup('error', `Invalid type: ${type}`);
+            type = 'shield'; // Default to shield
         }
         const powerUpConfig = POWERUP_TYPES[normalizedType];
-        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${normalizedType}PowerUp`]);
+        const image = game.assets[powerUpConfig.imageKey];
+        
+        if (!image) {
+            Logger.powerup('error', `Missing image for type: ${type}`);
+        }
+        
+        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, image);
         this.type = normalizedType;
-        this.speed = 2;
         this.config = powerUpConfig;
+        this.speed = 2;
+        
+        Logger.powerup('create', this.type, {x, y});
     }
 
     move() {
