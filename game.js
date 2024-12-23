@@ -370,22 +370,30 @@ class Explosion {
         this.frameIndex = 0;
         this.frameTime = 0;
         this.frameDuration = 50; // ms per frame
-        this.totalFrames = 8; // Assuming 8 frames in sprite sheet
+        this.totalFrames = 8;
+        this.width = 64;
+        this.height = 64;
         
-        // Center the explosion sprite
-        this.width = 64;  // Sprite frame width
-        this.height = 64; // Sprite frame height
+        // Center the explosion
         this.x -= this.width / 2;
         this.y -= this.height / 2;
         
-        console.log('Creating sprite explosion at:', x, y);
+        console.log('Explosion created:', {
+            position: {x: this.x, y: this.y},
+            dimensions: `${this.width}x${this.height}`,
+            frames: this.totalFrames
+        });
     }
 
     update() {
-        this.frameTime += 16; // Assuming 60fps (1000/60 ≈ 16)
+        this.frameTime += 16;
         if (this.frameTime >= this.frameDuration) {
             this.frameIndex++;
             this.frameTime = 0;
+            console.log('Explosion frame update:', {
+                frame: this.frameIndex,
+                total: this.totalFrames
+            });
         }
     }
 
@@ -484,11 +492,6 @@ class SpriteSheet {
         this.frameHeight = frameHeight;
         this.frames = [];
         
-        // Validate dimensions
-        if (image.width % frameWidth !== 0 || image.height % frameHeight !== 0) {
-            console.warn('Image dimensions not evenly divisible by frame size');
-        }
-        
         // Calculate frames
         const cols = Math.floor(image.width / frameWidth);
         const rows = Math.floor(image.height / frameHeight);
@@ -504,7 +507,11 @@ class SpriteSheet {
             }
         }
         
-        console.log(`SpriteSheet initialized with ${this.frames.length} frames`);
+        console.log('SpriteSheet initialized:', {
+            totalFrames: this.frames.length,
+            dimensions: `${image.width}x${image.height}`,
+            frameSize: `${frameWidth}x${frameHeight}`
+        });
     }
 
     drawFrame(ctx, frameNumber, x, y, width, height) {
@@ -523,13 +530,14 @@ class SpriteSheet {
                 width || frame.width,
                 height || frame.height
             );
+            console.log('Drawing frame:', {
+                frameNumber,
+                position: {x, y},
+                source: {x: frame.x, y: frame.y}
+            });
         } catch (error) {
             console.error('Error drawing sprite frame:', error);
         }
-    }
-
-    getFrameCount() {
-        return this.frames.length;
     }
 }
 
