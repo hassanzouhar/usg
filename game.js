@@ -648,6 +648,8 @@ function renderGame() {
             POWERUP_WIDTH, POWERUP_HEIGHT
         );
     });
+
+    renderHitboxes();
 }
 
 function update() {
@@ -844,6 +846,20 @@ function createBullet(x, y) {
         });
     }
     return [new Bullet(x, y)];
+}
+
+function renderHitboxes() {
+    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+    
+    // Enemy hitboxes
+    game.enemies.forEach(enemy => {
+        game.ctx.strokeRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
+    });
+    
+    // Bullet hitboxes
+    game.bullets.forEach(bullet => {
+        game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
+    });
 }
 
 window.addEventListener('load', async () => {
