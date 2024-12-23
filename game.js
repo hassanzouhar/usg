@@ -586,6 +586,17 @@ function loadImages() {
             }
         }
 
+        function onImageError(imageName) {
+            loadedImages++;
+            imageStatus[imageName] = 'failed';
+            console.error(`Failed to load image: ${imageName}`);
+            
+            if (loadedImages === totalImages) {
+                console.log('Image loading complete with errors:', imageStatus);
+                resolve();
+            }
+        }
+
         // Add explosion spritesheet loading
         game.assets.explosionImage = new Image();
         game.assets.explosionImage.onload = () => onImageLoad('explosionSheet');
@@ -598,47 +609,6 @@ function loadImages() {
         game.assets.shieldPowerUp = new Image();
         game.assets.rapidFirePowerUp = new Image();
         game.assets.multiShotPowerUp = new Image();
-
-        function onImageLoad(imageName) {
-            loadedImages++;
-            imageStatus[imageName] = 'loaded';
-            console.log(`Loaded image: ${imageName}`);
-            
-            if (loadedImages === totalImages) {
-                console.log('All images loaded:', imageStatus);
-                resolve();
-            }
-        }
-
-        function onImageError(imageName) {
-            loadedImages++;
-            imageStatus[imageName] = 'failed';
-            console.error(`Failed to load image: ${imageName}`);
-            
-            if (loadedImages === totalImages) {
-                console.log('Image loading complete with errors:', imageStatus);
-                resolve();
-            }
-        }
-
-        // Add load/error handlers for each image
-        game.assets.backgroundImage.onload = () => onImageLoad('background');
-        game.assets.backgroundImage.onerror = () => onImageError('background');
-        
-        game.assets.playerImage.onload = () => onImageLoad('player');
-        game.assets.playerImage.onerror = () => onImageError('player');
-        
-        game.assets.enemyImage.onload = () => onImageLoad('enemy');
-        game.assets.enemyImage.onerror = () => onImageError('enemy');
-        
-        game.assets.shieldPowerUp.onload = () => onImageLoad('shieldPowerUp');
-        game.assets.shieldPowerUp.onerror = () => onImageError('shieldPowerUp');
-        
-        game.assets.rapidFirePowerUp.onload = () => onImageLoad('rapidFirePowerUp');
-        game.assets.rapidFirePowerUp.onerror = () => onImageError('rapidFirePowerUp');
-        
-        game.assets.multiShotPowerUp.onload = () => onImageLoad('multiShotPowerUp');
-        game.assets.multiShotPowerUp.onerror = () => onImageError('multiShotPowerUp');
 
         // Set image sources
         console.log('Starting image load...');
