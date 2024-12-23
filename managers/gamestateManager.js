@@ -1,3 +1,5 @@
+import { GAME_CONSTANTS } from '../core/constants.js';
+
 export class GameStateManager {
     constructor() {
         this.resetGame();

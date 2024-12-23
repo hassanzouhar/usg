@@ -2,16 +2,17 @@ import { GAME_CONSTANTS } from '../core/constants.js';
 import { Logger } from '../core/logger.js';
 
 class SoundPool {
-    constructor(audioBuffer, poolSize) {
+    constructor(audioBuffer, poolSize, audioContext) {
         this.audioBuffer = audioBuffer;
         this.sources = Array(poolSize).fill(null);
         this.currentIndex = 0;
+        this.audioContext = audioContext;
     }
 
     play() {
-        const source = AUDIO_CONTEXT.createBufferSource();
+        const source = this.audioContext.createBufferSource();
         source.buffer = this.audioBuffer;
-        source.connect(AUDIO_CONTEXT.destination);
+        source.connect(this.audioContext.destination);
         
         if (this.sources[this.currentIndex]) {
             this.sources[this.currentIndex].disconnect();
@@ -28,16 +29,21 @@ export class SoundManager {
         this.buffers = {};
         this.sounds = {};
         this.muted = false;
-        this.AUDIO_CONTEXT = new (window.AudioContext || window.webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
     async loadSound(name, url) {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await this.AUDIO_CONTEXT.decodeAudioData(arrayBuffer);
-        this.buffers[name] = audioBuffer;
-        this.sounds[name] = new SoundPool(audioBuffer, GAME_CONSTANTS.SOUND.POOL_SIZE);
-        Logger.sound('load', name);
+        try {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+            this.buffers[name] = audioBuffer;
+            this.sounds[name] = new SoundPool(audioBuffer, this.poolSize, this.audioContext);
+            Logger.sound('load', `Sound ${name} loaded successfully`);
+        } catch (error) {
+            Logger.error('SOUND', `Failed to load sound: ${name}`, error);
+            throw error;
+        }
     }
 
     async init() {

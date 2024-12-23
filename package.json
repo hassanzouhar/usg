@@ -2,9 +2,11 @@
   "name": "usgf",
   "version": "1.0.0",
   "main": "game.js",
-  "scripts": {
+"scripts": {
+    "start": "http-server . -p 8080",
+    "dev": "http-server . -p 8080 -c-1",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hassanzouhar/usg.git"
@@ -16,8 +18,11 @@
     "url": "https://github.com/hassanzouhar/usg/issues"
   },
   "homepage": "https://github.com/hassanzouhar/usg#readme",
-  "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10"
-  }
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "description": ""
 }
