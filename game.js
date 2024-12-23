@@ -565,7 +565,16 @@ function updateGameLogic() {
     game.powerUps = game.powerUps.filter(powerUp => {
         powerUp.move();
         
-        // Check for collision with player
+        // Debug collision detection
+        console.log(
+            `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
+            `PowerUp: (${Math.round(powerUp.x)}, ${Math.round(powerUp.y)})`,
+            `Distance: ${Math.round(Math.sqrt(
+                Math.pow(game.player.x - powerUp.x, 2) + 
+                Math.pow(game.player.y - powerUp.y, 2)
+            ))}`
+        );
+        
         if (checkCollision(game.player, powerUp)) {
             activatePowerUp(powerUp);
             return false; // Remove power-up
@@ -600,6 +609,21 @@ function renderGame() {
 
     // Draw power-up indicator
     drawPowerUpIndicator();
+
+    // Draw hitboxes for debugging
+    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+    game.ctx.strokeRect(
+        game.player.x, game.player.y,
+        game.player.width, game.player.height
+    );
+    
+    game.powerUps.forEach(powerUp => {
+        game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+        game.ctx.strokeRect(
+            powerUp.x, powerUp.y,
+            powerUp.width, powerUp.height
+        );
+    });
 }
 
 function update() {
