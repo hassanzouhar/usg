@@ -565,22 +565,28 @@ function updateGameLogic() {
     game.powerUps = game.powerUps.filter(powerUp => {
         powerUp.move();
         
-        // Debug collision detection
-        console.log(
-            `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
-            `PowerUp: (${Math.round(powerUp.x)}, ${Math.round(powerUp.y)})`,
-            `Distance: ${Math.round(Math.sqrt(
-                Math.pow(game.player.x - powerUp.x, 2) + 
-                Math.pow(game.player.y - powerUp.y, 2)
-            ))}`
+        // Enhanced debug logging
+        const distance = Math.sqrt(
+            Math.pow(game.player.x - powerUp.x, 2) + 
+            Math.pow(game.player.y - powerUp.y, 2)
         );
         
+        console.log(
+            `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
+            `Dims: ${PLAYER_WIDTH}x${PLAYER_HEIGHT}`,
+            `PowerUp: (${Math.round(powerUp.x)}, ${Math.round(powerUp.y)})`,
+            `Dims: ${POWERUP_WIDTH}x${POWERUP_HEIGHT}`,
+            `Distance: ${Math.round(distance)}`,
+            `Collision: ${checkCollision(game.player, powerUp)}`
+        );
+        
+        // Check collision with visual debug
         if (checkCollision(game.player, powerUp)) {
+            console.log('COLLISION DETECTED!');
             activatePowerUp(powerUp);
-            return false; // Remove power-up
+            return false;
         }
         
-        // Remove if off screen
         return powerUp.y < game.canvas.height;
     });
 }
@@ -622,6 +628,21 @@ function renderGame() {
         game.ctx.strokeRect(
             powerUp.x, powerUp.y,
             powerUp.width, powerUp.height
+        );
+    });
+
+    // Draw collision boxes
+    game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+    game.ctx.strokeRect(
+        game.player.x, game.player.y,
+        PLAYER_WIDTH, PLAYER_HEIGHT
+    );
+    
+    game.powerUps.forEach(powerUp => {
+        game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+        game.ctx.strokeRect(
+            powerUp.x, powerUp.y,
+            POWERUP_WIDTH, POWERUP_HEIGHT
         );
     });
 }
