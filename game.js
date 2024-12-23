@@ -697,7 +697,7 @@ function updateGameLogic() {
     // Power-up spawning
     const now = Date.now();
     if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = ['shield', 'multishot', 'rapidfire']; // Updated to match POWERUP_TYPES keys
+        const types = ['shield', 'multiShot', 'rapidFire']; // Updated to match POWERUP_TYPES keys
         const randomType = types[Math.floor(Math.random() * types.length)];
         console.log(`Spawning ${randomType} power-up`);
         game.powerUps.push(new PowerUp(
