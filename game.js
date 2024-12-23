@@ -261,14 +261,17 @@ class Explosion {
         this.expansionRate = 2;
         this.opacity = 1;
         this.fadeRate = 0.05;
+        console.log(`New explosion created at (${Math.round(x)}, ${Math.round(y)})`);
     }
 
     update() {
         if (this.radius < this.maxRadius) {
             this.radius += this.expansionRate;
+            console.log(`Explosion expanding: ${Math.round(this.radius)}/${this.maxRadius}`);
         }
         if (this.opacity > 0) {
             this.opacity -= this.fadeRate;
+            console.log(`Explosion fading: ${this.opacity.toFixed(2)}`);
         }
     }
 
@@ -285,7 +288,11 @@ class Explosion {
     }
 
     isFinished() {
-        return this.opacity <= 0;
+        const finished = this.opacity <= 0;
+        if (finished) {
+            console.log('Explosion animation complete');
+        }
+        return finished;
     }
 }
 
@@ -565,8 +572,13 @@ function updateGameLogic() {
                 resetEnemyPosition(enemy);
                 updateScore(100); // Increment score when an enemy is destroyed
                 game.bullets.splice(index, 1);
-                explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2)); // Add explosion
+                console.log('Creating explosion effect');
+                explosions.push(new Explosion(
+                    enemy.x + enemy.width / 2,
+                    enemy.y + enemy.height / 2
+                ));
                 soundManager.play('explosion');
+                console.log('Playing explosion sound');
             }
         });
     });
