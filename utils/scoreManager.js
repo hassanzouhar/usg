@@ -65,4 +65,4 @@ export class ScoreManager {
         clearTimeout(this.comboTimer);
         this.scoreMultiplier = 1;
     }
-}
+}   
