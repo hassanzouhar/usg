@@ -324,6 +324,18 @@ class Bullet extends GameObject {
         this.x += Math.sin(radians) * this.speed;
         this.y -= Math.cos(radians) * this.speed;
     }
+
+    draw() {
+        game.ctx.save();
+        game.ctx.fillStyle = 'yellow';
+        game.ctx.fillRect(this.x, this.y, this.width, this.height);
+        game.ctx.restore();
+        
+        if (DEBUG.COLLISIONS) {
+            game.ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            game.ctx.strokeRect(this.x, this.y, this.width, this.height);
+        }
+    }
 }
 
 class Explosion {
@@ -758,13 +770,13 @@ function renderGame() {
     // Draw background
     game.ctx.drawImage(game.assets.backgroundImage, 0, 0, game.canvas.width, game.canvas.height);
     
-    // Draw explosions
-    explosions.forEach(explosion => explosion.draw(game.ctx));
-    
-    // Draw game objects
-    game.player.draw();
+    // Draw bullets
     game.bullets.forEach(bullet => bullet.draw());
+    
+    // Draw other game objects
+    game.player.draw();
     game.enemies.forEach(enemy => enemy.draw());
+    explosions.forEach(explosion => explosion.draw(game.ctx));
     game.powerUps.forEach(powerUp => powerUp.draw());
     
     // Draw UI elements last
