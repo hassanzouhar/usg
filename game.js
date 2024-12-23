@@ -354,21 +354,51 @@ function loadImages() {
 
         let loadedImages = 0;
         const totalImages = 6;
+        const imageStatus = {};
 
-        function onImageLoad() {
+        function onImageLoad(imageName) {
             loadedImages++;
+            imageStatus[imageName] = 'loaded';
+            console.log(`Loaded image: ${imageName}`);
+            
             if (loadedImages === totalImages) {
+                console.log('All images loaded:', imageStatus);
                 resolve();
             }
         }
 
-        game.assets.backgroundImage.onload = onImageLoad;
-        game.assets.playerImage.onload = onImageLoad;
-        game.assets.enemyImage.onload = onImageLoad;
-        game.assets.shieldPowerUp.onload = onImageLoad;
-        game.assets.rapidFirePowerUp.onload = onImageLoad;
-        game.assets.multiShotPowerUp.onload = onImageLoad;
+        function onImageError(imageName) {
+            loadedImages++;
+            imageStatus[imageName] = 'failed';
+            console.error(`Failed to load image: ${imageName}`);
+            
+            if (loadedImages === totalImages) {
+                console.log('Image loading complete with errors:', imageStatus);
+                resolve();
+            }
+        }
 
+        // Add load/error handlers for each image
+        game.assets.backgroundImage.onload = () => onImageLoad('background');
+        game.assets.backgroundImage.onerror = () => onImageError('background');
+        
+        game.assets.playerImage.onload = () => onImageLoad('player');
+        game.assets.playerImage.onerror = () => onImageError('player');
+        
+        game.assets.enemyImage.onload = () => onImageLoad('enemy');
+        game.assets.enemyImage.onerror = () => onImageError('enemy');
+        
+        game.assets.shieldPowerUp.onload = () => onImageLoad('shieldPowerUp');
+        game.assets.shieldPowerUp.onerror = () => onImageError('shieldPowerUp');
+        
+        game.assets.rapidFirePowerUp.onload = () => onImageLoad('rapidFirePowerUp');
+        game.assets.rapidFirePowerUp.onerror = () => onImageError('rapidFirePowerUp');
+        
+        game.assets.multiShotPowerUp.onload = () => onImageLoad('multiShotPowerUp');
+        game.assets.multiShotPowerUp.onerror = () => onImageError('multiShotPowerUp');
+
+        // Set image sources
+        console.log('Starting image load...');
         game.assets.backgroundImage.src = 'img/space-background.png';
         game.assets.playerImage.src = 'img/player-ship.png';
         game.assets.enemyImage.src = 'img/enemy-ship.png';
@@ -518,6 +548,20 @@ function updateGameLogic() {
         bullet.move();
         game.enemies.forEach((enemy, enemyIndex) => {
             if (checkCollision(bullet, enemy)) {
+                console.log('Collision Details:', {
+                    bullet: {
+                        x: Math.round(bullet.x),
+                        y: Math.round(bullet.y),
+                        width: BULLET_WIDTH,
+                        height: BULLET_HEIGHT
+                    },
+                    enemy: {
+                        x: Math.round(enemy.x),
+                        y: Math.round(enemy.y),
+                        width: ENEMY_WIDTH,
+                        height: ENEMY_HEIGHT
+                    }
+                });
                 resetEnemyPosition(enemy);
                 updateScore(100); // Increment score when an enemy is destroyed
                 game.bullets.splice(index, 1);
@@ -650,6 +694,22 @@ function renderGame() {
     });
 
     renderHitboxes();
+
+    // Debug hitboxes
+    if (true) { // Toggle for debugging
+        game.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+        
+        // Enemy hitboxes
+        game.enemies.forEach(enemy => {
+            game.ctx.strokeRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
+        });
+        
+        // Bullet hitboxes
+        game.bullets.forEach(bullet => {
+            game.ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+            game.ctx.strokeRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
+        });
+    }
 }
 
 function update() {
