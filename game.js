@@ -463,51 +463,94 @@ class PowerUp extends GameObject {
 
 class SpriteSheet {
     constructor(image, frameWidth, frameHeight) {
+        if (!image || !image.complete) {
+            throw new Error('Invalid or incomplete image provided to SpriteSheet');
+        }
+
         this.image = image;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.frames = [];
         
-        // Calculate frames from spritesheet
-        for (let i = 0; i < image.height; i += frameHeight) {
-            for (let j = 0; j < image.width; j += frameWidth) {
+        // Validate dimensions
+        if (image.width % frameWidth !== 0 || image.height % frameHeight !== 0) {
+            console.warn('Image dimensions not evenly divisible by frame size');
+        }
+        
+        // Calculate frames
+        const cols = Math.floor(image.width / frameWidth);
+        const rows = Math.floor(image.height / frameHeight);
+        
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
                 this.frames.push({
-                    x: j,
-                    y: i,
+                    x: col * frameWidth,
+                    y: row * frameHeight,
                     width: frameWidth,
                     height: frameHeight
                 });
             }
         }
+        
+        console.log(`SpriteSheet initialized with ${this.frames.length} frames`);
     }
 
     drawFrame(ctx, frameNumber, x, y, width, height) {
+        if (frameNumber < 0 || frameNumber >= this.frames.length) {
+            console.warn(`Invalid frame number: ${frameNumber}`);
+            return;
+        }
+
         const frame = this.frames[frameNumber];
-        ctx.drawImage(
-            this.image,
-            frame.x, frame.y,
-            frame.width, frame.height,
-            x, y,
-            width || frame.width,
-            height || frame.height
-        );
+        try {
+            ctx.drawImage(
+                this.image,
+                frame.x, frame.y,
+                frame.width, frame.height,
+                x, y,
+                width || frame.width,
+                height || frame.height
+            );
+        } catch (error) {
+            console.error('Error drawing sprite frame:', error);
+        }
+    }
+
+    getFrameCount() {
+        return this.frames.length;
     }
 }
 
 function loadImages() {
     return new Promise((resolve) => {
-        // Add explosion spritesheet to assets
+        const totalImages = 7; // Include explosion spritesheet
+        let loadedImages = 0;
+        const imageStatus = {};
+
+        function onImageLoad(imageName) {
+            loadedImages++;
+            imageStatus[imageName] = 'loaded';
+            console.log(`Loaded image: ${imageName}`);
+            
+            if (loadedImages === totalImages) {
+                if (game.assets.explosionImage?.complete) {
+                    game.assets.explosionSheet = new SpriteSheet(
+                        game.assets.explosionImage,
+                        64, // frame width
+                        64  // frame height
+                    );
+                }
+                console.log('All images loaded:', imageStatus);
+                resolve();
+            }
+        }
+
+        // Add explosion spritesheet loading
         game.assets.explosionImage = new Image();
-        game.assets.explosionImage.onload = () => {
-            game.assets.explosionSheet = new SpriteSheet(
-                game.assets.explosionImage,
-                64, // frame width
-                64  // frame height
-            );
-            onImageLoad('explosionSheet');
-        };
+        game.assets.explosionImage.onload = () => onImageLoad('explosionSheet');
+        game.assets.explosionImage.onerror = () => onImageError('explosionSheet');
         game.assets.explosionImage.src = 'img/explosion-sheet.png';
-        
+
         game.assets.backgroundImage = new Image();
         game.assets.playerImage = new Image();
         game.assets.enemyImage = new Image();
@@ -752,15 +795,11 @@ function updateGameLogic() {
         }
     });
 
-    // Update explosions
-    explosions.forEach((explosion, index) => {
+    // Update and clean up explosions in one pass
+    game.explosions = game.explosions.filter(explosion => {
         explosion.update();
-        if (explosion.isFinished()) {
-            explosions.splice(index, 1);
-        }
+        return !explosion.isFinished();
     });
-
-    updateEnemySpawning(); // Call the enemy spawning logic
 
     // Power-up spawning
     const now = Date.now();
