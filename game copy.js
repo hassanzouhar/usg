@@ -365,47 +365,46 @@ class Bullet extends GameObject {
 
 class Explosion {
     constructor(x, y) {
+        // Validate and constrain coordinates
         this.x = Math.max(0, Math.min(x, game.canvas.width));
         this.y = Math.max(0, Math.min(y, game.canvas.height));
-        this.frameIndex = 0;
-        this.frameTime = 0;
-        this.frameDuration = 50; // ms per frame
-        this.totalFrames = 8; // Assuming 8 frames in sprite sheet
-        
-        // Center the explosion sprite
-        this.width = 64;  // Sprite frame width
-        this.height = 64; // Sprite frame height
-        this.x -= this.width / 2;
-        this.y -= this.height / 2;
-        
-        console.log('Creating sprite explosion at:', x, y);
+        this.radius = 0;
+        this.maxRadius = 30;
+        this.expansionRate = 2;
+        this.opacity = 1;
+        this.fadeRate = 0.02; // Reduced from 0.05 for longer visibility
+        this.minOpacity = 0.1; // Add minimum opacity threshold
+        console.log('Creating explosion at:', x, y);
     }
 
     update() {
-        this.frameTime += 16; // Assuming 60fps (1000/60 ≈ 16)
-        if (this.frameTime >= this.frameDuration) {
-            this.frameIndex++;
-            this.frameTime = 0;
+        this.radius += this.expansionRate;
+        
+        // Only fade after reaching certain size
+        if (this.radius > this.maxRadius * 0.3) {
+            this.opacity = Math.max(this.minOpacity, this.opacity - this.fadeRate);
         }
+        
+        console.log('Explosion update:', {
+            radius: this.radius,
+            opacity: this.opacity.toFixed(2)
+        });
     }
 
     draw(ctx) {
-        if (this.isFinished()) return;
+        if (this.opacity <= this.minOpacity) return;
         
-        if (game.assets.explosionSheet) {
-            game.assets.explosionSheet.drawFrame(
-                ctx,
-                this.frameIndex,
-                this.x,
-                this.y,
-                this.width,
-                this.height
-            );
-        }
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'orange';
+        ctx.fill();
+        ctx.restore();
     }
 
     isFinished() {
-        return this.frameIndex >= this.totalFrames;
+        return this.opacity <= this.minOpacity;
     }
 }
 
