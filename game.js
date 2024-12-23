@@ -365,34 +365,47 @@ class Bullet extends GameObject {
 
 class Explosion {
     constructor(x, y) {
+        // Position handling
         this.x = Math.max(0, Math.min(x, game.canvas.width));
         this.y = Math.max(0, Math.min(y, game.canvas.height));
+        
+        // Animation properties
         this.frameIndex = 0;
         this.frameTime = 0;
-        this.frameDuration = 50; // ms per frame
+        this.frameDuration = 50;
         this.totalFrames = 8;
+        
+        // Sprite dimensions
         this.width = 64;
         this.height = 64;
         
-        // Center the explosion
+        // Center explosion
         this.x -= this.width / 2;
         this.y -= this.height / 2;
         
-        console.log('Explosion created:', {
-            position: {x: this.x, y: this.y},
-            dimensions: `${this.width}x${this.height}`,
-            frames: this.totalFrames
+        // Debug info
+        console.log('Explosion initialized:', {
+            position: { x: this.x, y: this.y },
+            dimensions: { width: this.width, height: this.height },
+            animation: {
+                currentFrame: this.frameIndex,
+                totalFrames: this.totalFrames,
+                duration: this.frameDuration
+            }
         });
     }
 
     update() {
-        this.frameTime += 16;
+        this.frameTime += 16; // ~60fps
+        
         if (this.frameTime >= this.frameDuration) {
             this.frameIndex++;
             this.frameTime = 0;
+            
             console.log('Explosion frame update:', {
-                frame: this.frameIndex,
-                total: this.totalFrames
+                currentFrame: this.frameIndex,
+                totalFrames: this.totalFrames,
+                position: { x: this.x, y: this.y }
             });
         }
     }
@@ -409,6 +422,12 @@ class Explosion {
                 this.width,
                 this.height
             );
+            
+            // Debug visualization
+            if (DEBUG.EXPLOSIONS) {
+                ctx.strokeStyle = 'red';
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+            }
         }
     }
 
