@@ -1,3 +1,8 @@
+import { AssetManager } from './managers/assetManager.js';
+import { SoundManager } from './managers/soundManager.js';
+import { GameStateManager } from './managers/gameStateManager.js';
+import { UIManager } from './managers/uiManager.js';
+
 export class GameObject {
     constructor(x, y, width, height, image) {
         this.x = x;
@@ -46,16 +51,24 @@ export class Game {
             assetsLoaded: false,
             loadingError: null
         };
+        
+        // Initialize managers
+        this.assetManager = new AssetManager();
+        this.soundManager = new SoundManager();
+        this.stateManager = new GameStateManager();
+        this.uiManager = new UIManager();
     }
 
     async initialize() {
         try {
+            // Get canvas context
             this.canvas = document.getElementById('gameCanvas');
             if (!this.canvas) {
                 throw new Error('Canvas element not found');
             }
-            
             this.ctx = this.canvas.getContext('2d');
+            
+            // Load all assets
             await this.loadAssets();
             this.setupEventListeners();
             this.state.assetsLoaded = true;
@@ -119,6 +132,15 @@ export class Game {
 }
 
 class GameInstance extends Game {
+    constructor() {
+        super();
+        this.player = null;
+        this.enemies = [];
+        this.bullets = [];
+        this.powerUps = [];
+        this.explosions = [];
+    }
+
     update(deltaTime) {
         // Update player
         if (this.player) {
