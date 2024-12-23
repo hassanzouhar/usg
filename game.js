@@ -32,19 +32,19 @@ const POWERUP_TYPES = {
         effect: (player) => player.hasShield = true,
         remove: (player) => player.hasShield = false
     },
-    'rapidFire': {
-        type: 'rapidFire', 
-        duration: 5000,
-        color: 'red',
-        effect: (player) => player.cooldownReduction = 0.5,
-        remove: (player) => player.cooldownReduction = 1
-    },
-    'multiShot': {
-        type: 'multiShot',
+    'multishot': { // Changed from multiShot to multishot
+        type: 'multishot',
         duration: 5000,
         color: 'green',
         effect: (player) => player.hasMultiShot = true,
         remove: (player) => player.hasMultiShot = false
+    },
+    'rapidfire': { // Changed from rapidFire to rapidfire
+        type: 'rapidfire',
+        duration: 5000,
+        color: 'red',
+        effect: (player) => player.cooldownReduction = 0.5,
+        remove: (player) => player.cooldownReduction = 1
     }
 };
 
@@ -551,7 +551,7 @@ function updateGameLogic() {
     // Power-up spawning
     const now = Date.now();
     if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = ['shield', 'rapidFire', 'multiShot'];
+        const types = ['shield', 'multishot', 'rapidfire']; // Updated to match POWERUP_TYPES keys
         const randomType = types[Math.floor(Math.random() * types.length)];
         game.powerUps.push(new PowerUp(
             Math.random() * (game.canvas.width - POWERUP_WIDTH),
