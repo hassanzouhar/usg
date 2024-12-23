@@ -13,8 +13,24 @@
             POWERUPS: true,
             EXPLOSIONS: true,
             SOUND: true,
-            ASSETS: true
+            ASSETS: true,
+            isDevelopment: window.location.hostname === 'localhost'
         };
+
+        // Show debug panel in development
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.DEBUG.isDevelopment) {
+                document.getElementById('debug-panel').classList.remove('hidden');
+            }
+            
+            // Add event listeners for debug toggles
+            document.getElementById('toggle-collisions').addEventListener('click', 
+                () => window.DEBUG.COLLISIONS = !window.DEBUG.COLLISIONS);
+            document.getElementById('toggle-powerups').addEventListener('click',
+                () => window.DEBUG.POWERUPS = !window.DEBUG.POWERUPS);
+            document.getElementById('toggle-explosions').addEventListener('click',
+                () => window.DEBUG.EXPLOSIONS = !window.DEBUG.EXPLOSIONS);
+        });
     </script>
     
     <!-- Load utilities first -->
@@ -66,12 +82,12 @@
 
     <!-- Add debug UI if needed -->
     <div id="debug-panel" class="hidden">
-        <button onclick="window.DEBUG.COLLISIONS = !window.DEBUG.COLLISIONS">Toggle Collision Debug</button>
-        <button onclick="window.DEBUG.POWERUPS = !window.DEBUG.POWERUPS">Toggle PowerUp Debug</button>
-        <button onclick="window.DEBUG.EXPLOSIONS = !window.DEBUG.EXPLOSIONS">Toggle Explosion Debug</button>
+        <button id="toggle-collisions">Toggle Collision Debug</button>
+        <button id="toggle-powerups">Toggle PowerUp Debug</button>
+        <button id="toggle-explosions">Toggle Explosion Debug</button>
     </div>
 
-    <!-- Update script loading order -->
+    <!-- Load other scripts -->
     <script type="module" src="core/constants.js"></script>
     <script type="module" src="core/game.js"></script>
 </body>
