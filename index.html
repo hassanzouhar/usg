@@ -6,8 +6,8 @@
     <title>Ultimate Galactic Space Fighter</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Add debug mode toggle -->
-    <script>
+    <!-- Add type="module" to all JavaScript imports -->
+    <script type="module">
         window.DEBUG = {
             COLLISIONS: true,
             POWERUPS: true,
@@ -33,8 +33,12 @@
         });
     </script>
     
-    <!-- Load utilities first -->
-    <script src="core/logger.js" type="module"></script>
+    <!-- Load modules in correct order -->
+    <script type="module" src="core/logger.js"></script>
+    <script type="module" src="core/constants.js"></script>
+    <script type="module" src="core/game.js"></script>
+    
+    <!-- Load non-module scripts -->
     <script src="env-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -88,7 +92,5 @@
     </div>
 
     <!-- Load other scripts -->
-    <script type="module" src="core/constants.js"></script>
-    <script type="module" src="core/game.js"></script>
 </body>
 </html>
