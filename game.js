@@ -363,45 +363,37 @@ class Explosion {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.radius = 0;
-        this.maxRadius = 30;
-        this.expansionRate = 2;
-        this.opacity = 1;
-        this.fadeRate = 0.05; // Add missing fadeRate initialization
-        Logger.explosion('created', `Position: (${Math.round(x)}, ${Math.round(y)})`);
+        this.frameIndex = 0;
+        this.tickCount = 0;
+        this.ticksPerFrame = 2;
+        this.numberOfFrames = 8; // Assuming 8 frames in explosion spritesheet
+        this.width = 64;  // Width of each frame
+        this.height = 64; // Height of each frame
     }
 
     update() {
-        if (this.radius < this.maxRadius) {
-            this.radius += this.expansionRate;
-            Logger.explosion('expanding', `Radius: ${Math.round(this.radius)}/${this.maxRadius}`);
-        }
-        if (this.opacity > 0) {
-            this.opacity -= this.fadeRate;
-            Logger.explosion('fading', `Opacity: ${this.opacity.toFixed(2)}`);
+        this.tickCount++;
+        if (this.tickCount > this.ticksPerFrame) {
+            this.tickCount = 0;
+            this.frameIndex++;
         }
     }
 
     draw(ctx) {
-        if (this.opacity <= 0) return;
-        
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'orange';
-        ctx.fill();
-        ctx.restore();
-        
-        Logger.explosion('drawing', `Position: (${Math.round(this.x)}, ${Math.round(this.y)}), Radius: ${Math.round(this.radius)}, Opacity: ${this.opacity.toFixed(2)}`);
+        if (game.assets.explosionSheet) {
+            game.assets.explosionSheet.drawFrame(
+                ctx,
+                this.frameIndex,
+                this.x - this.width/2,
+                this.y - this.height/2,
+                this.width,
+                this.height
+            );
+        }
     }
 
     isFinished() {
-        const finished = this.opacity <= 0;
-        if (finished) {
-            Logger.explosion('completed', `Final position: (${Math.round(this.x)}, ${Math.round(this.y)})`);
-        }
-        return finished;
+        return this.frameIndex >= this.numberOfFrames;
     }
 }
 
@@ -469,8 +461,53 @@ class PowerUp extends GameObject {
     }
 }
 
+class SpriteSheet {
+    constructor(image, frameWidth, frameHeight) {
+        this.image = image;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+        this.frames = [];
+        
+        // Calculate frames from spritesheet
+        for (let i = 0; i < image.height; i += frameHeight) {
+            for (let j = 0; j < image.width; j += frameWidth) {
+                this.frames.push({
+                    x: j,
+                    y: i,
+                    width: frameWidth,
+                    height: frameHeight
+                });
+            }
+        }
+    }
+
+    drawFrame(ctx, frameNumber, x, y, width, height) {
+        const frame = this.frames[frameNumber];
+        ctx.drawImage(
+            this.image,
+            frame.x, frame.y,
+            frame.width, frame.height,
+            x, y,
+            width || frame.width,
+            height || frame.height
+        );
+    }
+}
+
 function loadImages() {
     return new Promise((resolve) => {
+        // Add explosion spritesheet to assets
+        game.assets.explosionImage = new Image();
+        game.assets.explosionImage.onload = () => {
+            game.assets.explosionSheet = new SpriteSheet(
+                game.assets.explosionImage,
+                64, // frame width
+                64  // frame height
+            );
+            onImageLoad('explosionSheet');
+        };
+        game.assets.explosionImage.src = 'img/explosion-sheet.png';
+        
         game.assets.backgroundImage = new Image();
         game.assets.playerImage = new Image();
         game.assets.enemyImage = new Image();

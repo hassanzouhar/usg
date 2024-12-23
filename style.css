@@ -199,6 +199,27 @@ button:hover {
   to { transform: rotate(360deg); }
 }
 
+@keyframes powerupGlow {
+    0% { box-shadow: 0 0 5px var(--color-success); }
+    50% { box-shadow: 0 0 20px var(--color-success); }
+    100% { box-shadow: 0 0 5px var(--color-success); }
+}
+
+@keyframes scorePopup {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+.powerup-active {
+    animation: powerupGlow 1s infinite;
+}
+
+.score-popup {
+    position: absolute;
+    animation: scorePopup 0.5s ease-out forwards;
+}
+
 /* Utilities */
 .hidden {
   display: none;
