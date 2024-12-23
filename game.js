@@ -371,13 +371,19 @@ class Explosion {
         this.maxRadius = 30;
         this.expansionRate = 2;
         this.opacity = 1;
-        this.fadeRate = 0.1;
+        this.fadeRate = 0.02; // Reduced from 0.05 for longer visibility
+        this.minOpacity = 0.1; // Add minimum opacity threshold
         console.log('Creating explosion at:', x, y);
     }
 
     update() {
         this.radius += this.expansionRate;
-        this.opacity -= this.fadeRate;
+        
+        // Only fade after reaching certain size
+        if (this.radius > this.maxRadius * 0.3) {
+            this.opacity = Math.max(this.minOpacity, this.opacity - this.fadeRate);
+        }
+        
         console.log('Explosion update:', {
             radius: this.radius,
             opacity: this.opacity.toFixed(2)
@@ -385,7 +391,7 @@ class Explosion {
     }
 
     draw(ctx) {
-        if (this.opacity <= 0) return;
+        if (this.opacity <= this.minOpacity) return;
         
         ctx.save();
         ctx.globalAlpha = this.opacity;
@@ -397,7 +403,7 @@ class Explosion {
     }
 
     isFinished() {
-        return this.opacity <= 0;
+        return this.opacity <= this.minOpacity;
     }
 }
 
