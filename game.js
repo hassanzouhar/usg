@@ -95,8 +95,8 @@ const SOUND_POOL_SIZE = 5;
 const AUDIO_CONTEXT = new (window.AudioContext || window.webkitAudioContext)();
 const POWERUP_SPAWN_INTERVAL = 15000; // First power-up after 15 seconds, then regularly
 const POWERUP_SPAWN_CHANCE = 0.2; // 20% chance to spawn when interval is met
-const POWERUP_WIDTH = 30;
-const POWERUP_HEIGHT = 30;
+const POWERUP_WIDTH = 50;
+const POWERUP_HEIGHT = 50;
 
 const POWERUP_TYPES = {
     'shield': {
