@@ -4,42 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Galactic Space Fighter</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
     
-    <!-- Add type="module" to all JavaScript imports -->
-    <script type="module">
-        window.DEBUG = {
-            COLLISIONS: true,
-            POWERUPS: true,
-            EXPLOSIONS: true,
-            SOUND: true,
-            ASSETS: true,
-            isDevelopment: window.location.hostname === 'localhost'
-        };
-
-        // Show debug panel in development
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.DEBUG.isDevelopment) {
-                document.getElementById('debug-panel').classList.remove('hidden');
-            }
-            
-            // Add event listeners for debug toggles
-            document.getElementById('toggle-collisions').addEventListener('click', 
-                () => window.DEBUG.COLLISIONS = !window.DEBUG.COLLISIONS);
-            document.getElementById('toggle-powerups').addEventListener('click',
-                () => window.DEBUG.POWERUPS = !window.DEBUG.POWERUPS);
-            document.getElementById('toggle-explosions').addEventListener('click',
-                () => window.DEBUG.EXPLOSIONS = !window.DEBUG.EXPLOSIONS);
-        });
-    </script>
+    <!-- Load debug configuration -->
+    <script src="/core/debug.js" type="module"></script>
     
-    <!-- Load modules in correct order -->
-    <script type="module" src="core/logger.js"></script>
-    <script type="module" src="core/constants.js"></script>
-    <script type="module" src="core/game.js"></script>
+    <!-- Load core modules with proper paths -->
+    <script src="/core/logger.js" type="module"></script>
+    <script src="/core/constants.js" type="module"></script>
+    <script src="/core/game.js" type="module"></script>
     
     <!-- Load non-module scripts -->
-    <script src="env-config.js"></script>
+    <script src="/env-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
