@@ -640,39 +640,54 @@ function updateGameLogic() {
 
 // Add collision visualization and logging
 function checkCollision(obj1, obj2) {
+    // Calculate boundaries
+    const obj1Right = obj1.x + obj1.width;
+    const obj1Bottom = obj1.y + obj1.height;
+    const obj2Right = obj2.x + obj2.width;
+    const obj2Bottom = obj2.y + obj2.height;
+
+    // Check for collision
     const collision = (
-        obj1.x < obj2.x + obj2.width &&
-        obj1.x + obj1.width > obj2.x &&
-        obj1.y < obj2.y + obj2.height &&
-        obj1.y + obj2.height > obj2.y
+        obj1.x < obj2Right &&
+        obj1Right > obj2.x &&
+        obj1.y < obj2Bottom &&
+        obj1Bottom > obj2.y
     );
 
     if (collision) {
+        // Calculate overlap
+        const overlapX = Math.min(obj1Right, obj2Right) - Math.max(obj1.x, obj2.x);
+        const overlapY = Math.min(obj1Bottom, obj2Bottom) - Math.max(obj1.y, obj2.y);
+
         console.log('Collision detected:', {
             object1: {
                 x: Math.round(obj1.x),
                 y: Math.round(obj1.y),
                 width: obj1.width,
                 height: obj1.height,
-                right: Math.round(obj1.x + obj1.width),
-                bottom: Math.round(obj1.y + obj1.height)
+                right: Math.round(obj1Right),
+                bottom: Math.round(obj1Bottom)
             },
             object2: {
                 x: Math.round(obj2.x),
                 y: Math.round(obj2.y),
                 width: obj2.width,
                 height: obj2.height,
-                right: Math.round(obj2.x + obj2.width),
-                bottom: Math.round(obj2.y + obj2.height)
+                right: Math.round(obj2Right),
+                bottom: Math.round(obj2Bottom)
             },
             overlap: {
-                x: Math.max(0, Math.min(obj1.x + obj1.width, obj2.x + obj2.width) - Math.max(obj1.x, obj2.x)),
-                y: Math.max(0, Math.min(obj1.y + obj1.height, obj2.y + obj2.height) - Math.max(obj1.y, obj2.y))
+                x: Math.round(overlapX),
+                y: Math.round(overlapY),
+                total: Math.round(overlapX * overlapY)
             }
         });
+
+        // Add minimum overlap threshold
+        return (overlapX * overlapY) > 25; // Require meaningful collision
     }
 
-    return collision;
+    return false;
 }
 
 function renderGame() {
