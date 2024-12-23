@@ -103,22 +103,40 @@ const POWERUP_TYPES = {
         type: 'shield',
         duration: 5000,
         color: 'blue',
-        effect: (player) => player.hasShield = true,
-        remove: (player) => player.hasShield = false
+        effect: (player) => {
+            player.hasShield = true;
+            console.log('Shield activated');
+        },
+        remove: (player) => {
+            player.hasShield = false;
+            console.log('Shield deactivated');
+        }
     },
-    'multiShot': { // Changed from multiShot to multishot
-        type: 'multiShot',
-        duration: 5000,
-        color: 'green',
-        effect: (player) => player.hasMultiShot = true,
-        remove: (player) => player.hasMultiShot = false
-    },
-    'rapidFire': { // Changed from rapidFire to rapidfire
-        type: 'rapidFire',
+    'rapidfire': {
+        type: 'rapidfire',
         duration: 5000,
         color: 'red',
-        effect: (player) => player.cooldownReduction = 0.5,
-        remove: (player) => player.cooldownReduction = 1
+        effect: (player) => {
+            player.cooldownReduction = 0.5;
+            console.log('Rapid fire activated');
+        },
+        remove: (player) => {
+            player.cooldownReduction = 1;
+            console.log('Rapid fire deactivated');
+        }
+    },
+    'multishot': {
+        type: 'multishot',
+        duration: 5000,
+        color: 'green',
+        effect: (player) => {
+            player.hasMultiShot = true;
+            console.log('Multi-shot activated');
+        },
+        remove: (player) => {
+            player.hasMultiShot = false;
+            console.log('Multi-shot deactivated');
+        }
     }
 };
 
@@ -386,14 +404,13 @@ class Explosion {
 
 class PowerUp extends GameObject {
     constructor(x, y, type) {
-        // Normalize type to lowercase for comparison
         const normalizedType = type.toLowerCase();
         if (!POWERUP_TYPES[normalizedType]) {
             console.error(`Invalid powerup type: ${type}`);
-            type = 'shield'; // Default to shield if invalid type
+            type = 'shield';
         }
         const powerUpConfig = POWERUP_TYPES[normalizedType];
-        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${type}PowerUp`]);
+        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${normalizedType}PowerUp`]);
         this.type = normalizedType;
         this.speed = 2;
         this.config = powerUpConfig;
@@ -417,23 +434,26 @@ class PowerUp extends GameObject {
     activate(player) {
         if (!this.config || !this.config.effect) return;
         
-        console.log(`Activating ${this.type} power-up`);
-        this.config.effect(player);
-        game.powerUpActive = this.type;
-        game.powerUpStartTime = Date.now();
-        
+        // Clear existing power-up if active
         if (game.powerUpTimer) {
             clearTimeout(game.powerUpTimer);
+            if (game.powerUpActive && POWERUP_TYPES[game.powerUpActive].remove) {
+                POWERUP_TYPES[game.powerUpActive].remove(player);
+            }
         }
+
+        // Apply new power-up
+        this.config.effect(player);
+        game.powerUpActive = this.type;
         
+        // Set expiration timer
         game.powerUpTimer = setTimeout(() => {
-            console.log(`${this.type} power-up expired`);
             if (this.config.remove) {
                 this.config.remove(player);
             }
             game.powerUpActive = null;
-        }, this.config.duration || 5000);
-        
+        }, this.config.duration);
+
         soundManager.play('powerUp');
     }
 }
@@ -697,7 +717,7 @@ function updateGameLogic() {
     // Power-up spawning
     const now = Date.now();
     if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = ['shield', 'multiShot', 'rapidFire']; // Updated to match POWERUP_TYPES keys
+        const types = Object.keys(POWERUP_TYPES);
         const randomType = types[Math.floor(Math.random() * types.length)];
         console.log(`Spawning ${randomType} power-up`);
         game.powerUps.push(new PowerUp(
