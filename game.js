@@ -371,7 +371,7 @@ class Explosion {
         this.maxRadius = 30;
         this.expansionRate = 2;
         this.opacity = 1;
-        this.fadeRate = 0.05;
+        this.fadeRate = 0.005;
         console.log('Creating explosion at:', x, y);
     }
 
