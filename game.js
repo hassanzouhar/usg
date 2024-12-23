@@ -789,34 +789,39 @@ async function updateHighScores() {
 }
 
 function activatePowerUp(powerUp) {
-    // Clear any existing power-up timer
+    console.log(`Attempting to activate ${powerUp.type} power-up`);
+    
+    if (!powerUp.config || !powerUp.config.effect) {
+        console.error('Invalid power-up configuration');
+        return;
+    }
+    
+    // Apply power-up effect
+    powerUp.config.effect(game.player);
+    game.powerUpActive = powerUp.type;
+    game.powerUpStartTime = Date.now();
+    
+    console.log(`Power-up ${powerUp.type} activated`, {
+        hasMultiShot: game.player.hasMultiShot,
+        hasRapidFire: game.player.hasRapidFire,
+        cooldownReduction: game.player.cooldownReduction
+    });
+    
+    // Clear existing timer
     if (game.powerUpTimer) {
         clearTimeout(game.powerUpTimer);
     }
-
-    // Apply power-up effect
-    switch (powerUp.type) {
-        case 'shield':
-            game.player.hasShield = true;
-            break;
-        case 'rapidFire':
-            game.player.hasRapidFire = true;
-            break;
-        case 'multiShot':
-            game.player.hasMultiShot = true;
-            break;
-    }
-
-    // Play power-up sound
-    soundManager.play('powerUp');
-
-    // Set timer to remove power-up
+    
+    // Set expiration timer
     game.powerUpTimer = setTimeout(() => {
-        game.player.hasShield = false;
-        game.player.hasrapidFire = false;
-        game.player.hasMultiShot = false;
+        console.log(`${powerUp.type} power-up expired`);
+        if (powerUp.config.remove) {
+            powerUp.config.remove(game.player);
+        }
         game.powerUpActive = null;
-    }, game.powerUpDuration);
+    }, powerUp.config.duration || 5000);
+    
+    soundManager.play('powerUp');
 }
 
 function drawPowerUpIndicator() {
