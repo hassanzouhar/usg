@@ -97,6 +97,8 @@ const POWERUP_SPAWN_INTERVAL = 15000; // First power-up after 15 seconds, then r
 const POWERUP_SPAWN_CHANCE = 0.2; // 20% chance to spawn when interval is met
 const POWERUP_WIDTH = 50;
 const POWERUP_HEIGHT = 50;
+const INITIAL_ENEMY_COUNT = 3;
+const ENEMY_SPAWN_INTERVAL = 2000; // 2 seconds
 
 const POWERUP_TYPES = {
     'shield': {
@@ -715,6 +717,12 @@ async function initGame() {
     
     document.addEventListener('keydown', game.keydownListener);
     document.addEventListener('keyup', game.keyupListener);
+
+    // Initialize enemies
+    for (let i = 0; i < INITIAL_ENEMY_COUNT; i++) {
+        spawnEnemy();
+    }
+    lastEnemySpawnTime = Date.now();
 }
 
 function startGame() {
@@ -839,6 +847,12 @@ function updateGameLogic() {
         
         return powerUp.y < game.canvas.height;
     });
+
+    // Update enemy spawning
+    updateEnemySpawning();
+    
+    // Update existing enemies
+    game.enemies.forEach(enemy => enemy.move());
 }
 
 // Add collision visualization and logging
