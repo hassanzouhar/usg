@@ -500,6 +500,14 @@ function updateGameLogic() {
     // Update existing power-ups
     game.powerUps = game.powerUps.filter(powerUp => {
         powerUp.move();
+        
+        // Check for collision with player
+        if (checkCollision(game.player, powerUp)) {
+            activatePowerUp(powerUp);
+            return false; // Remove power-up
+        }
+        
+        // Remove if off screen
         return powerUp.y < game.canvas.height;
     });
 }
@@ -665,33 +673,35 @@ async function updateHighScores() {
     }
 }
 
-function activatePowerUp(type) {
-    // Clear existing power-up timer
+function activatePowerUp(powerUp) {
+    // Clear any existing power-up timer
     if (game.powerUpTimer) {
         clearTimeout(game.powerUpTimer);
     }
 
     // Apply power-up effect
-    switch (type) {
+    switch (powerUp.type) {
         case 'shield':
-            game.player.isShielded = true;
-            game.powerUpTimer = setTimeout(() => {
-                game.player.isShielded = false;
-            }, game.powerUpDuration);
+            game.player.hasShield = true;
             break;
         case 'rapidFire':
-            SHOOTING_COOLDOWN = 75; // Half the normal cooldown
-            game.powerUpTimer = setTimeout(() => {
-                SHOOTING_COOLDOWN = 150;
-            }, game.powerUpDuration);
+            game.player.hasRapidFire = true;
             break;
         case 'multiShot':
             game.player.hasMultiShot = true;
-            game.powerUpTimer = setTimeout(() => {
-                game.player.hasMultiShot = false;
-            }, game.powerUpDuration);
             break;
     }
+
+    // Play power-up sound
+    soundManager.play('powerUp');
+
+    // Set timer to remove power-up
+    game.powerUpTimer = setTimeout(() => {
+        game.player.hasShield = false;
+        game.player.hasRapidFire = false;
+        game.player.hasMultiShot = false;
+        game.powerUpActive = null;
+    }, game.powerUpDuration);
 }
 
 window.addEventListener('load', async () => {
