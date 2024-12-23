@@ -741,7 +741,7 @@ function activatePowerUp(powerUp) {
             game.player.hasShield = true;
             break;
         case 'rapidFire':
-            game.player.hasRapidFire = true;
+            game.player.hasrapidFire = true;
             break;
         case 'multiShot':
             game.player.hasMultiShot = true;
@@ -754,7 +754,7 @@ function activatePowerUp(powerUp) {
     // Set timer to remove power-up
     game.powerUpTimer = setTimeout(() => {
         game.player.hasShield = false;
-        game.player.hasRapidFire = false;
+        game.player.hasrapidFire = false;
         game.player.hasMultiShot = false;
         game.powerUpActive = null;
     }, game.powerUpDuration);
