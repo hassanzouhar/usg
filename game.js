@@ -177,7 +177,9 @@ const game = {
     assets: {
         backgroundImage: null,
         playerImage: null,
-        enemyImage: null
+        enemyImage: null,
+        explosionImage: null,
+        explosionSheet: null
     },
     isGameActive: false,
     keydownListener: null,
@@ -365,37 +367,37 @@ class Explosion {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.frameIndex = 0;
-        this.tickCount = 0;
-        this.ticksPerFrame = 2;
-        this.numberOfFrames = 8; // Assuming 8 frames in explosion spritesheet
-        this.width = 64;  // Width of each frame
-        this.height = 64; // Height of each frame
+        this.radius = 0;
+        this.maxRadius = 30;
+        this.expansionRate = 2;
+        this.opacity = 1;
+        this.fadeRate = 0.05;
+        console.log('Creating explosion at:', x, y);
     }
 
     update() {
-        this.tickCount++;
-        if (this.tickCount > this.ticksPerFrame) {
-            this.tickCount = 0;
-            this.frameIndex++;
-        }
+        this.radius += this.expansionRate;
+        this.opacity -= this.fadeRate;
+        console.log('Explosion update:', {
+            radius: this.radius,
+            opacity: this.opacity.toFixed(2)
+        });
     }
 
     draw(ctx) {
-        if (game.assets.explosionSheet) {
-            game.assets.explosionSheet.drawFrame(
-                ctx,
-                this.frameIndex,
-                this.x - this.width/2,
-                this.y - this.height/2,
-                this.width,
-                this.height
-            );
-        }
+        if (this.opacity <= 0) return;
+        
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'orange';
+        ctx.fill();
+        ctx.restore();
     }
 
     isFinished() {
-        return this.frameIndex >= this.numberOfFrames;
+        return this.opacity <= 0;
     }
 }
 
@@ -893,8 +895,18 @@ function renderGame() {
     // Draw other game objects
     game.player.draw();
     game.enemies.forEach(enemy => enemy.draw());
-    game.explosions.forEach(explosion => explosion.draw(game.ctx));
     game.powerUps.forEach(powerUp => powerUp.draw());
+    
+    // Draw explosions last to ensure they're visible
+    game.explosions.forEach(explosion => {
+        explosion.draw(game.ctx);
+        console.log('Drawing explosion:', {
+            x: explosion.x,
+            y: explosion.y,
+            radius: explosion.radius,
+            opacity: explosion.opacity
+        });
+    });
     
     // Draw UI elements last
     drawPowerUpIndicator();
