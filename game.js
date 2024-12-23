@@ -24,6 +24,30 @@ const POWERUP_SPAWN_CHANCE = 0.2; // 20% chance to spawn when interval is met
 const POWERUP_WIDTH = 30;
 const POWERUP_HEIGHT = 30;
 
+const POWERUP_TYPES = {
+    SHIELD: {
+        type: 'shield',
+        duration: 5000,
+        color: 'blue',
+        effect: (player) => player.hasShield = true,
+        remove: (player) => player.hasShield = false
+    },
+    RAPID_FIRE: {
+        type: 'rapidFire',
+        duration: 5000,
+        color: 'red',
+        effect: (player) => player.cooldownReduction = 0.5,
+        remove: (player) => player.cooldownReduction = 1
+    },
+    MULTI_SHOT: {
+        type: 'multiShot',
+        duration: 5000,
+        color: 'green',
+        effect: (player) => player.hasMultiShot = true,
+        remove: (player) => player.hasMultiShot = false
+    }
+};
+
 // Global variables
 let lastDifficultyIncrease = 0;
 let lastEnemySpawnTime = 0;
@@ -213,7 +237,7 @@ class Enemy extends GameObject {
 
 class Bullet extends GameObject {
     constructor(x, y) {
-        super(x, y, 5, 10, null);
+        super(x, y, 5, 10, null);   
         this.speed = 7;
     }
 
@@ -261,24 +285,38 @@ class Explosion {
 
 class PowerUp extends GameObject {
     constructor(x, y, type) {
-        const image = type === 'shield' ? game.assets.shieldPowerUp :
-                     type === 'rapidFire' ? game.assets.rapidFirePowerUp :
-                     game.assets.multiShotPowerUp;
-        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, image);
+        const powerUpConfig = POWERUP_TYPES[type];
+        super(x, y, POWERUP_WIDTH, POWERUP_HEIGHT, game.assets[`${type}PowerUp`]);
         this.type = type;
         this.speed = 2;
+        this.config = powerUpConfig;
     }
 
-    move() {
-        this.y += this.speed;
+    activate(player) {
+        this.config.effect(player);
+        game.powerUpActive = this.type;
+        game.powerUpStartTime = Date.now();
+        
+        if (game.powerUpTimer) {
+            clearTimeout(game.powerUpTimer);
+        }
+        
+        game.powerUpTimer = setTimeout(() => {
+            this.config.remove(player);
+            game.powerUpActive = null;
+        }, this.config.duration);
+        
+        soundManager.play('powerUp');
     }
 
     draw() {
-        game.ctx.fillStyle = this.type === 'shield' ? 'blue' : 
-                            this.type === 'rapidFire' ? 'red' : 'green';
+        super.draw();
+        // Add visual effect
         game.ctx.beginPath();
-        game.ctx.arc(this.x + 15, this.y + 15, 15, 0, Math.PI * 2);
-        game.ctx.fill();
+        game.ctx.arc(this.x + POWERUP_WIDTH/2, this.y + POWERUP_HEIGHT/2, 
+                    POWERUP_WIDTH * 0.6, 0, Math.PI * 2);
+        game.ctx.strokeStyle = this.config.color;
+        game.ctx.stroke();
     }
 }
 
@@ -533,6 +571,9 @@ function renderGame() {
 
     // Draw power-ups
     game.powerUps.forEach(powerUp => powerUp.draw());
+
+    // Draw power-up indicator
+    drawPowerUpIndicator();
 }
 
 function update() {
@@ -702,6 +743,28 @@ function activatePowerUp(powerUp) {
         game.player.hasMultiShot = false;
         game.powerUpActive = null;
     }, game.powerUpDuration);
+}
+
+function drawPowerUpIndicator() {
+    if (game.powerUpActive) {
+        const config = POWERUP_TYPES[game.powerUpActive];
+        const timeLeft = config.duration - (Date.now() - game.powerUpStartTime);
+        const width = 100 * (timeLeft / config.duration);
+        
+        game.ctx.fillStyle = config.color;
+        game.ctx.fillRect(10, 10, width, 5);
+    }
+}
+
+function createBullet(x, y) {
+    if (game.player.hasMultiShot) {
+        return [-15, 0, 15].map(angle => {
+            const bullet = new Bullet(x, y);
+            bullet.angle = angle;
+            return bullet;
+        });
+    }
+    return [new Bullet(x, y)];
 }
 
 window.addEventListener('load', async () => {
