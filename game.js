@@ -186,6 +186,9 @@ class Player extends GameObject {
     constructor(x, y) {
         super(x, y, PLAYER_WIDTH, PLAYER_HEIGHT, game.assets.playerImage);
         this.speed = 5;
+        this.hasMultiShot = false;
+        this.hasRapidFire = false;
+        this.cooldownReduction = 1; // 1 = normal, 0.5 = twice as fast
     }
 
     move() {
@@ -237,12 +240,15 @@ class Enemy extends GameObject {
 
 class Bullet extends GameObject {
     constructor(x, y) {
-        super(x, y, 5, 10, null);   
-        this.speed = 7;
+        super(x, y, BULLET_WIDTH, BULLET_HEIGHT, null);
+        this.speed = BULLET_SPEED;
+        this.angle = 0;
     }
 
     move() {
-        this.y -= this.speed;
+        const radians = this.angle * Math.PI / 180;
+        this.x += Math.sin(radians) * this.speed;
+        this.y -= Math.cos(radians) * this.speed;
     }
 }
 
@@ -440,26 +446,31 @@ async function initGame() {
     }
     
     game.keydownListener = (e) => {
+        if (!game.isGameActive) return;
         game.keys[e.code] = true;
-        if (e.code === 'Space' && game.isGameActive && 
-            Date.now() - game.lastShotTime > SHOOTING_COOLDOWN) {
+        
+        const now = Date.now();
+        const adjustedCooldown = SHOOTING_COOLDOWN * game.player.cooldownReduction;
+        
+        if (e.code === 'Space' && now - game.lastShotTime > adjustedCooldown) {
             if (game.player.hasMultiShot) {
-                // Create three bullets
-                for (let angle = -15; angle <= 15; angle += 15) {
+                // Create three angled bullets
+                [-15, 0, 15].forEach(angle => {
                     const bullet = new Bullet(
                         game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
                         game.player.y
                     );
                     bullet.angle = angle;
                     game.bullets.push(bullet);
-                }
+                });
             } else {
+                // Single bullet
                 game.bullets.push(new Bullet(
                     game.player.x + game.player.width / 2 - BULLET_WIDTH / 2,
                     game.player.y
                 ));
             }
-            game.lastShotTime = Date.now();
+            game.lastShotTime = now;
             soundManager.play('shoot');
         }
     };
@@ -741,7 +752,7 @@ function activatePowerUp(powerUp) {
             game.player.hasShield = true;
             break;
         case 'rapidFire':
-            game.player.hasrapidFire = true;
+            game.player.hasRapidFire = true;
             break;
         case 'multiShot':
             game.player.hasMultiShot = true;
