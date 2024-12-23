@@ -322,6 +322,7 @@ class PowerUp extends GameObject {
     activate(player) {
         if (!this.config || !this.config.effect) return;
         
+        console.log(`Activating ${this.type} power-up`);
         this.config.effect(player);
         game.powerUpActive = this.type;
         game.powerUpStartTime = Date.now();
@@ -331,6 +332,7 @@ class PowerUp extends GameObject {
         }
         
         game.powerUpTimer = setTimeout(() => {
+            console.log(`${this.type} power-up expired`);
             if (this.config.remove) {
                 this.config.remove(player);
             }
@@ -553,6 +555,7 @@ function updateGameLogic() {
     if (now - game.lastPowerUpSpawn > POWERUP_SPAWN_INTERVAL && Math.random() < POWERUP_SPAWN_CHANCE) {
         const types = ['shield', 'multishot', 'rapidfire']; // Updated to match POWERUP_TYPES keys
         const randomType = types[Math.floor(Math.random() * types.length)];
+        console.log(`Spawning ${randomType} power-up`);
         game.powerUps.push(new PowerUp(
             Math.random() * (game.canvas.width - POWERUP_WIDTH),
             -POWERUP_HEIGHT,
