@@ -18,6 +18,7 @@ const DIFFICULTY_INCREASE_INTERVAL = 30000;
 const MAX_ENEMIES = 10;
 const ENEMY_SPEED_INCREASE = 0.2;
 const SOUND_POOL_SIZE = 5;
+const AUDIO_CONTEXT = new (window.AudioContext || window.webkitAudioContext)();
 
 // Global variables
 let lastDifficultyIncrease = 0;
@@ -63,51 +64,60 @@ const game = {
 
 // Create SoundPool class
 class SoundPool {
-    constructor(soundSrc, poolSize) {
-        this.pool = [];
-        this.currentSound = 0;
-        
-        for (let i = 0; i < poolSize; i++) {
-            const sound = new Audio(soundSrc);
-            sound.volume = 0.5; // Adjust volume as needed
-            sound.preload = 'auto'; // Preload the sound
-            this.pool.push(sound);
-        }
+    constructor(audioBuffer, poolSize) {
+        this.audioBuffer = audioBuffer;
+        this.sources = Array(poolSize).fill(null);
+        this.currentIndex = 0;
     }
 
     play() {
-        // Reset if sound is still playing
-        if (this.pool[this.currentSound].currentTime > 0) {
-            this.pool[this.currentSound].currentTime = 0;
+        // Create new source
+        const source = AUDIO_CONTEXT.createBufferSource();
+        source.buffer = this.audioBuffer;
+        source.connect(AUDIO_CONTEXT.destination);
+        
+        // Clean up old source if it exists
+        if (this.sources[this.currentIndex]) {
+            this.sources[this.currentIndex].disconnect();
         }
         
-        this.pool[this.currentSound].play();
-        this.currentSound = (this.currentSound + 1) % this.pool.length;
+        // Store and play new source
+        this.sources[this.currentIndex] = source;
+        source.start(0);
+        
+        // Move to next slot in pool
+        this.currentIndex = (this.currentIndex + 1) % this.sources.length;
     }
 }
 
 // Replace sounds object with SoundManager
 class SoundManager {
     constructor() {
-        this.sounds = {
-            shoot: new SoundPool('sounds/shoot.wav', SOUND_POOL_SIZE),
-            explosion: new SoundPool('sounds/explosion.wav', SOUND_POOL_SIZE),
-            powerUp: new SoundPool('sounds/powerup.wav', SOUND_POOL_SIZE),
-            gameOver: new Audio('sounds/gameover.wav') // Single instance for game over
-        };
-        
-        this.sounds.gameOver.preload = 'auto'; // Preload the game over sound
+        this.buffers = {};
+        this.sounds = {};
         this.muted = false;
     }
 
+    async loadSound(name, url) {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await AUDIO_CONTEXT.decodeAudioData(arrayBuffer);
+        this.buffers[name] = audioBuffer;
+        this.sounds[name] = new SoundPool(audioBuffer, SOUND_POOL_SIZE);
+    }
+
+    async init() {
+        await Promise.all([
+            this.loadSound('shoot', 'sounds/shoot.wav'),
+            this.loadSound('explosion', 'sounds/explosion.wav'),
+            this.loadSound('powerUp', 'sounds/powerup.wav'),
+            this.loadSound('gameOver', 'sounds/gameover.wav')
+        ]);
+    }
+
     play(soundName) {
-        if (this.muted) return;
-        if (this.sounds[soundName] instanceof SoundPool) {
-            this.sounds[soundName].play();
-        } else {
-            this.sounds[soundName].currentTime = 0;
-            this.sounds[soundName].play();
-        }
+        if (this.muted || !this.sounds[soundName]) return;
+        this.sounds[soundName].play();
     }
 
     toggleMute() {
@@ -342,10 +352,8 @@ async function initGame() {
     await loadImages();
     
     // Preload sounds
-    soundManager.play('shoot');
-    soundManager.play('explosion');
-    soundManager.play('powerUp');
-    soundManager.play('gameOver');
+    const soundManager = new SoundManager();
+    await soundManager.init();
     
     // Create player
     game.player = new Player(
