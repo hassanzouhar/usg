@@ -580,6 +580,7 @@ function loadImages() {
                         64, // frame width
                         64  // frame height
                     );
+                    console.log('Explosion sprite sheet initialized');
                 }
                 console.log('All images loaded:', imageStatus);
                 resolve();
